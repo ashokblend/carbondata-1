@@ -95,30 +95,32 @@ public final class FilterUtil {
    * and the resolved surrogates will be converted to keys
    *
    * @param filterExpressionResolverTree
-   * @param blockKeyGenerator
+   * @param segmentProperties
    * @return FilterExecuter instance
    */
   private static FilterExecuter createFilterExecuterTree(
-      FilterResolverIntf filterExpressionResolverTree, KeyGenerator blockKeyGenerator) {
+      FilterResolverIntf filterExpressionResolverTree, SegmentProperties segmentProperties) {
     FilterExecuterType filterExecuterType = filterExpressionResolverTree.getFilterExecuterType();
     switch (filterExecuterType) {
       case INCLUDE:
-        return new IncludeFilterExecuterImpl(
-            filterExpressionResolverTree.getDimColResolvedFilterInfo(), blockKeyGenerator);
+        return getIncludeFilterExecuter(filterExpressionResolverTree.getDimColResolvedFilterInfo(),
+            segmentProperties);
       case EXCLUDE:
         return new ExcludeFilterExecuterImpl(
-            filterExpressionResolverTree.getDimColResolvedFilterInfo(), blockKeyGenerator);
+            filterExpressionResolverTree.getDimColResolvedFilterInfo(),
+            segmentProperties.getDimensionKeyGenerator());
       case OR:
         return new OrFilterExecuterImpl(
-            createFilterExecuterTree(filterExpressionResolverTree.getLeft(), blockKeyGenerator),
-            createFilterExecuterTree(filterExpressionResolverTree.getRight(), blockKeyGenerator));
+            createFilterExecuterTree(filterExpressionResolverTree.getLeft(), segmentProperties),
+            createFilterExecuterTree(filterExpressionResolverTree.getRight(), segmentProperties));
       case AND:
         return new AndFilterExecuterImpl(
-            createFilterExecuterTree(filterExpressionResolverTree.getLeft(), blockKeyGenerator),
-            createFilterExecuterTree(filterExpressionResolverTree.getRight(), blockKeyGenerator));
+            createFilterExecuterTree(filterExpressionResolverTree.getLeft(), segmentProperties),
+            createFilterExecuterTree(filterExpressionResolverTree.getRight(), segmentProperties));
       case RESTRUCTURE:
         return new RestructureFilterExecuterImpl(
-            filterExpressionResolverTree.getDimColResolvedFilterInfo(), blockKeyGenerator);
+            filterExpressionResolverTree.getDimColResolvedFilterInfo(),
+            segmentProperties.getDimensionKeyGenerator());
       case ROWLEVEL_LESSTHAN:
       case ROWLEVEL_LESSTHAN_EQUALTO:
       case ROWLEVEL_GREATERTHAN_EQUALTO:
@@ -136,6 +138,22 @@ public final class FilterUtil {
 
     }
 
+  }
+
+  /**
+   * It gives filter executer based on columnar or column group
+   * @param dimColResolvedFilterInfo
+   * @param segmentProperties
+   * @return
+   */
+  private static FilterExecuter getIncludeFilterExecuter(
+      DimColumnResolvedFilterInfo dimColResolvedFilterInfo, SegmentProperties segmentProperties) {
+
+    if (dimColResolvedFilterInfo.getDimension().isColumnar()) {
+      return new IncludeFilterExecuterImpl(dimColResolvedFilterInfo, segmentProperties);
+    } else {
+      return new ColGroupFilterExecuterImpl(dimColResolvedFilterInfo, segmentProperties);
+    }
   }
 
   /**
@@ -808,12 +826,12 @@ public final class FilterUtil {
    * API will create an filter executer tree based on the filter resolver
    *
    * @param filterExpressionResolverTree
-   * @param blockKeyGenerator
+   * @param segmentProperties
    * @return
    */
   public static FilterExecuter getFilterExecuterTree(
-      FilterResolverIntf filterExpressionResolverTree, KeyGenerator blockKeyGenerator) {
-    return createFilterExecuterTree(filterExpressionResolverTree, blockKeyGenerator);
+      FilterResolverIntf filterExpressionResolverTree, SegmentProperties segmentProperties) {
+    return createFilterExecuterTree(filterExpressionResolverTree, segmentProperties);
   }
 
   /**
