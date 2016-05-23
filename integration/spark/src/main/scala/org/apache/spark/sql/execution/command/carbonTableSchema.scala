@@ -32,7 +32,9 @@ import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.TimestampType
 
 import org.carbondata.common.logging.LogServiceFactory
+import org.carbondata.core.carbon.AbsoluteTableIdentifier
 import org.carbondata.core.carbon.CarbonDataLoadSchema
+import org.carbondata.core.carbon.CarbonTableIdentifier
 import org.carbondata.core.carbon.metadata.CarbonMetadata
 import org.carbondata.core.carbon.metadata.datatype.DataType
 import org.carbondata.core.carbon.metadata.encoder.Encoding
@@ -1677,9 +1679,13 @@ private[sql] case class DropCubeCommand(ifExistsSet: Boolean, schemaNameOp: Opti
               relation.cubeMeta.dataPath,
               relation.cubeMeta.carbonTableIdentifier.getDatabaseName,
               relation.cubeMeta.carbonTableIdentifier.getTableName)(sqlContext)
+          val carbonTableIdentifier = new CarbonTableIdentifier(schemaName, cubeName)
+          val absTableIdentifier = new AbsoluteTableIdentifier(
+              CarbonEnv.getInstance(sqlContext).carbonCatalog.storePath,
+              carbonTableIdentifier)
           CarbonDataRDDFactory
             .dropCube(sqlContext.sparkContext, schemaName, cubeName,
-              relation.cubeMeta.partitioner)
+              relation.cubeMeta.partitioner, absTableIdentifier)
           QueryPartitionHelper.getInstance().removePartition(schemaName, cubeName)
 
           LOGGER.audit(s"Deleted cube [$cubeName] under schema [$schemaName]")

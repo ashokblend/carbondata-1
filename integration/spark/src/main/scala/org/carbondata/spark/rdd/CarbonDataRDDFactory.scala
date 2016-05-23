@@ -30,6 +30,7 @@ import org.apache.spark.sql.execution.command.Partitioner
 import org.apache.spark.util.{FileUtils, SplitUtils}
 
 import org.carbondata.common.logging.LogServiceFactory
+import org.carbondata.core.carbon.AbsoluteTableIdentifier
 import org.carbondata.core.carbon.CarbonDataLoadSchema
 import org.carbondata.core.carbon.metadata.CarbonMetadata
 import org.carbondata.core.carbon.metadata.schema.table.CarbonTable
@@ -554,9 +555,10 @@ object CarbonDataRDDFactory extends Logging {
       sc: SparkContext,
       schema: String,
       cube: String,
-      partitioner: Partitioner) {
+      partitioner: Partitioner,
+      absTableIdentifier: AbsoluteTableIdentifier) {
     val kv: KeyVal[CarbonKey, CarbonValue] = new KeyValImpl()
-    new CarbonDropCubeRDD(sc, kv, schema, cube, partitioner).collect
+    new CarbonDropCubeRDD(sc, kv, schema, cube, partitioner, absTableIdentifier).collect
   }
 
   def cleanFiles(
