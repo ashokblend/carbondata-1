@@ -552,12 +552,12 @@ object CarbonDataRDDFactory extends Logging {
   }
 
   def dropCube(
-      cc: CarbonContext,
+      sc: SQLContext,
       schema: String,
       cube: String,
       partitioner: Partitioner) {
     val kv: KeyVal[CarbonKey, CarbonValue] = new KeyValImpl()
-    new CarbonDropCubeRDD(cc, kv, schema, cube, partitioner).collect
+    new CarbonDropCubeRDD(sc, kv, schema, cube, partitioner).collect
   }
 
   def cleanFiles(

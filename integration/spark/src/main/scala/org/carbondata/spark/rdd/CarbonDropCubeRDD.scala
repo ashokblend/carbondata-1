@@ -24,7 +24,7 @@ import scala.collection.JavaConverters._
 import org.apache.hadoop.mapreduce.Job
 import org.apache.spark.{Logging, Partition, SparkContext, TaskContext}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.CarbonContext
+import org.apache.spark.sql.{CarbonEnv, SQLContext}
 import org.apache.spark.sql.execution.command.Partitioner
 
 import org.carbondata.core.carbon.AbsoluteTableIdentifier
@@ -42,20 +42,22 @@ import org.carbondata.spark.util.CarbonQueryUtil
 import org.carbondata.spark.util.QueryPlanUtil
 
 class CarbonDropCubeRDD[K, V](
-    cc: CarbonContext,
+    sc: SQLContext,
     keyClass: KeyVal[K, V],
     schemaName: String,
     cubeName: String,
     partitioner: Partitioner)
-  extends RDD[(K, V)](cc.sparkContext, Nil) with Logging {
+  extends RDD[(K, V)](sc.sparkContext, Nil) with Logging {
 
-  cc.sparkContext.setLocalProperty("spark.scheduler.pool", "DDL")
+  sc.sparkContext.setLocalProperty("spark.scheduler.pool", "DDL")
 
-  val defaultParallelism = cc.sparkContext.defaultParallelism
+  val defaultParallelism = sc.sparkContext.defaultParallelism
+
+  val storePath = CarbonEnv.getInstance(sc).carbonCatalog.storePath
 
   override def getPartitions: Array[Partition] = {
     val carbonTableIdentifier = new CarbonTableIdentifier(schemaName, cubeName)
-    val absTableIdentifier = new AbsoluteTableIdentifier(cc.storePath, carbonTableIdentifier)
+    val absTableIdentifier = new AbsoluteTableIdentifier(storePath, carbonTableIdentifier)
     val (carbonInputFormat: CarbonInputFormat[RowResult], job: Job) =
       QueryPlanUtil.createCarbonInputFormat(absTableIdentifier)
 
@@ -96,7 +98,7 @@ class CarbonDropCubeRDD[K, V](
 
   override def compute(theSplit: Partition, context: TaskContext): Iterator[(K, V)] = {
     val carbonTableIdentifier = new CarbonTableIdentifier(schemaName, cubeName)
-    val absTableIdentifier = new AbsoluteTableIdentifier(cc.storePath, carbonTableIdentifier)
+    val absTableIdentifier = new AbsoluteTableIdentifier(storePath, carbonTableIdentifier)
     val iter = new Iterator[(K, V)] {
       BlockIndexStore.getInstance.clear(absTableIdentifier)
 

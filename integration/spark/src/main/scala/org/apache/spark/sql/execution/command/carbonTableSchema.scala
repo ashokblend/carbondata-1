@@ -1674,14 +1674,14 @@ private[sql] case class DropCubeCommand(ifExistsSet: Boolean, schemaNameOp: Opti
         } else {
           LOGGER.audit(s"Deleting cube [$cubeName] under schema [$schemaName]")
 
+          CarbonDataRDDFactory
+            .dropCube(sqlContext, schemaName, cubeName,
+              relation.cubeMeta.partitioner)
           CarbonEnv.getInstance(sqlContext).carbonCatalog
             .dropCube(relation.cubeMeta.partitioner.partitionCount,
               relation.cubeMeta.dataPath,
               relation.cubeMeta.carbonTableIdentifier.getDatabaseName,
               relation.cubeMeta.carbonTableIdentifier.getTableName)(sqlContext)
-          CarbonDataRDDFactory
-            .dropCube(sqlContext.asInstanceOf[CarbonContext], schemaName, cubeName,
-              relation.cubeMeta.partitioner)
           QueryPartitionHelper.getInstance().removePartition(schemaName, cubeName)
 
           LOGGER.audit(s"Deleted cube [$cubeName] under schema [$schemaName]")
