@@ -1679,13 +1679,9 @@ private[sql] case class DropCubeCommand(ifExistsSet: Boolean, schemaNameOp: Opti
               relation.cubeMeta.dataPath,
               relation.cubeMeta.carbonTableIdentifier.getDatabaseName,
               relation.cubeMeta.carbonTableIdentifier.getTableName)(sqlContext)
-          val carbonTableIdentifier = new CarbonTableIdentifier(schemaName, cubeName)
-          val absTableIdentifier = new AbsoluteTableIdentifier(
-              CarbonEnv.getInstance(sqlContext).carbonCatalog.storePath,
-              carbonTableIdentifier)
           CarbonDataRDDFactory
-            .dropCube(sqlContext.sparkContext, schemaName, cubeName,
-              relation.cubeMeta.partitioner, absTableIdentifier)
+            .dropCube(sqlContext.asInstanceOf[CarbonContext], schemaName, cubeName,
+              relation.cubeMeta.partitioner)
           QueryPartitionHelper.getInstance().removePartition(schemaName, cubeName)
 
           LOGGER.audit(s"Deleted cube [$cubeName] under schema [$schemaName]")

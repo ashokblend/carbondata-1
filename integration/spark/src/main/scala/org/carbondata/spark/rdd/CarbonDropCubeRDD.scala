@@ -24,9 +24,11 @@ import scala.collection.JavaConverters._
 import org.apache.hadoop.mapreduce.Job
 import org.apache.spark.{Logging, Partition, SparkContext, TaskContext}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.CarbonContext
 import org.apache.spark.sql.execution.command.Partitioner
 
 import org.carbondata.core.carbon.AbsoluteTableIdentifier
+import org.carbondata.core.carbon.CarbonTableIdentifier
 import org.carbondata.core.carbon.datastore.block.TableBlockInfo
 import org.carbondata.core.carbon.datastore.BlockIndexStore
 import org.carbondata.core.carbon.datastore.SegmentTaskIndexStore
@@ -40,54 +42,52 @@ import org.carbondata.spark.util.CarbonQueryUtil
 import org.carbondata.spark.util.QueryPlanUtil
 
 class CarbonDropCubeRDD[K, V](
-    sc: SparkContext,
+    cc: CarbonContext,
     keyClass: KeyVal[K, V],
     schemaName: String,
     cubeName: String,
-    partitioner: Partitioner,
-    absTableIdentifier: AbsoluteTableIdentifier)
-  extends RDD[(K, V)](sc, Nil) with Logging {
+    partitioner: Partitioner)
+  extends RDD[(K, V)](cc.sparkContext, Nil) with Logging {
 
-  sc.setLocalProperty("spark.scheduler.pool", "DDL")
+  cc.sparkContext.setLocalProperty("spark.scheduler.pool", "DDL")
 
-  val defaultParallelism = sc.defaultParallelism
+  val defaultParallelism = cc.sparkContext.defaultParallelism
 
   override def getPartitions: Array[Partition] = {
-    val startTime = System.currentTimeMillis();
+    val carbonTableIdentifier = new CarbonTableIdentifier(schemaName, cubeName)
+    val absTableIdentifier = new AbsoluteTableIdentifier(cc.storePath, carbonTableIdentifier)
     val (carbonInputFormat: CarbonInputFormat[RowResult], job: Job) =
       QueryPlanUtil.createCarbonInputFormat(absTableIdentifier)
 
     val result = new util.ArrayList[Partition](defaultParallelism)
     val validSegments = job.getConfiguration.get(CarbonInputFormat.INPUT_SEGMENT_NUMBERS)
     val nodesPerBlock = new util.ArrayList[TableBlockInfo]()
-    if(!validSegments.isEmpty) {
+    if (validSegments.nonEmpty) {
       // get splits
       val splits = carbonInputFormat.getSplits(job)
-      val carbonInputSplits = splits.asScala.map(_.asInstanceOf[CarbonInputSplit])
-
-      val blockList = carbonInputSplits.map(inputSplit =>
-        new TableBlockInfo(inputSplit.getPath.toString,
-          inputSplit.getStart, inputSplit.getSegmentId,
-          inputSplit.getLocations, inputSplit.getLength
+      val blockList = splits.asScala.map { split =>
+        val carbonInputSplit = split.asInstanceOf[CarbonInputSplit]
+        new TableBlockInfo(carbonInputSplit.getPath.toString,
+          carbonInputSplit.getStart, carbonInputSplit.getSegmentId,
+          carbonInputSplit.getLocations, carbonInputSplit.getLength
         )
-      )
-      if(!blockList.isEmpty) {
+      }
+
+      if (blockList.nonEmpty) {
         // group blocks to nodes, tasks
         val nodeBlockMapping =
           CarbonLoaderUtil.nodeBlockTaskMapping(blockList.asJava, -1, defaultParallelism)
 
-        var i = 0
         // Create Spark Partition for each task and assign blocks
-        nodeBlockMapping.asScala.foreach { entry =>
-           result.add(new CarbonSparkPartition(id, i, Seq(entry._1).toArray, nodesPerBlock))
-           i += 1;
+        nodeBlockMapping.asScala.zipWithIndex.foreach {
+          case(entry, index) => result.add(new CarbonSparkPartition(id,
+              index, Seq(entry._1).toArray, nodesPerBlock))
         }
       } else {
         logInfo("No blocks identified to scan")
         result.add(new CarbonSparkPartition(id, 0, Seq("").toArray, nodesPerBlock))
       }
-    }
-    else {
+    } else {
       result.add(new CarbonSparkPartition(id, 0, Seq("").toArray, nodesPerBlock))
     }
     SegmentTaskIndexStore.getInstance.clear(absTableIdentifier)
@@ -95,7 +95,8 @@ class CarbonDropCubeRDD[K, V](
   }
 
   override def compute(theSplit: Partition, context: TaskContext): Iterator[(K, V)] = {
-
+    val carbonTableIdentifier = new CarbonTableIdentifier(schemaName, cubeName)
+    val absTableIdentifier = new AbsoluteTableIdentifier(cc.storePath, carbonTableIdentifier)
     val iter = new Iterator[(K, V)] {
       BlockIndexStore.getInstance.clear(absTableIdentifier)
 

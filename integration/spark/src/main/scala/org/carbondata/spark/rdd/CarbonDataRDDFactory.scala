@@ -25,7 +25,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.spark.{Logging, SparkContext}
 import org.apache.spark.rdd.{DummyLoadRDD, NewHadoopRDD}
-import org.apache.spark.sql.{CarbonEnv, CarbonRelation, SQLContext}
+import org.apache.spark.sql.{CarbonContext, CarbonEnv, CarbonRelation, SQLContext}
 import org.apache.spark.sql.execution.command.Partitioner
 import org.apache.spark.util.{FileUtils, SplitUtils}
 
@@ -552,13 +552,12 @@ object CarbonDataRDDFactory extends Logging {
   }
 
   def dropCube(
-      sc: SparkContext,
+      cc: CarbonContext,
       schema: String,
       cube: String,
-      partitioner: Partitioner,
-      absTableIdentifier: AbsoluteTableIdentifier) {
+      partitioner: Partitioner) {
     val kv: KeyVal[CarbonKey, CarbonValue] = new KeyValImpl()
-    new CarbonDropCubeRDD(sc, kv, schema, cube, partitioner, absTableIdentifier).collect
+    new CarbonDropCubeRDD(cc, kv, schema, cube, partitioner).collect
   }
 
   def cleanFiles(
