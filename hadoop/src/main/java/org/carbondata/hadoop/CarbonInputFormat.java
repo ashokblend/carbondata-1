@@ -100,6 +100,7 @@ public class CarbonInputFormat<T> extends FileInputFormat<Void, T> {
       CarbonTableIdentifier tableIdentifier) {
     configuration.set(CarbonInputFormat.DATABASE_NAME, tableIdentifier.getDatabaseName());
     configuration.set(CarbonInputFormat.TABLE_NAME, tableIdentifier.getTableName());
+    job.getConfiguration().setInt(CarbonInputFormat.TABLE_ID, tableIdentifier.getTableId());
   }
 
   /**
@@ -125,8 +126,9 @@ public class CarbonInputFormat<T> extends FileInputFormat<Void, T> {
   public static CarbonTableIdentifier getTableToAccess(Configuration configuration) {
     String databaseName = configuration.get(CarbonInputFormat.DATABASE_NAME);
     String tableName = configuration.get(CarbonInputFormat.TABLE_NAME);
+    int tableId = job.getConfiguration().getInt(CarbonInputFormat.TABLE_ID, -1);
     if (databaseName != null && tableName != null) {
-      return new CarbonTableIdentifier(databaseName, tableName);
+      return new CarbonTableIdentifier(databaseName, tableName, tableId);
     }
     //TODO: better raise exception
     return null;

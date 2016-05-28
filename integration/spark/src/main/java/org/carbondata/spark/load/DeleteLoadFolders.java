@@ -37,7 +37,7 @@ import java.util.List;
 
 import org.carbondata.common.logging.LogService;
 import org.carbondata.common.logging.LogServiceFactory;
-import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.AbsoluteTableIdentifier;
 import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.constants.CarbonCommonConstants;
 import org.carbondata.core.datastorage.store.filesystem.CarbonFile;
@@ -136,9 +136,9 @@ public final class DeleteLoadFolders {
     } catch (NumberFormatException nfe) {
       LOGGER.error("Error message: " + "Invalid segment id: " + oneLoad.getLoadName());
     }
-
-    path = new CarbonStorePath(storeLocation).getCarbonTablePath(
-        new CarbonTableIdentifier(loadModel.getDatabaseName(), loadModel.getTableName()))
+    AbsoluteTableIdentifier absTableIdentifier = loadModel.getAbsTableIdentifier();
+    path = new CarbonStorePath(absTableIdentifier.getStorePath())
+        .getCarbonTablePath(absTableIdentifier.getCarbonTableIdentifier())
         .getCarbonDataDirectoryPath("" + partitionId, segmentId);
     return path;
   }

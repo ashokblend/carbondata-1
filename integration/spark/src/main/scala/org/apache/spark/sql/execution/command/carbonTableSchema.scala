@@ -336,7 +336,7 @@ class TableNewProcessor(cm: tableModel, sqlContext: SQLContext) {
     val schemaEvol = new SchemaEvolution()
     schemaEvol
       .setSchemaEvolutionEntryList(new util.ArrayList[SchemaEvolutionEntry]())
-    tableSchema.setTableId(1)
+    tableSchema.setTableId(scala.util.Random.nextInt())
     tableSchema.setTableName(cm.cubeName)
     tableSchema.setListOfColumns(allColumns.asJava)
     tableSchema.setSchemaEvalution(schemaEvol)
@@ -1245,7 +1245,7 @@ private[sql] case class DeleteLoadsById(
 
     var segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier
     (CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-      new CarbonTableIdentifier(schemaName, tableName)
+      new CarbonTableIdentifier(schemaName, tableName, carbonTable.getFactTableId)
     )
     )
 
@@ -1305,7 +1305,7 @@ private[sql] case class DeleteLoadsByLoadDate(
       .getCarbonTable(schemaName + '_' + tableName)
     var segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier
     (CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-      new CarbonTableIdentifier(schemaName, tableName)
+      new CarbonTableIdentifier(schemaName, tableName, carbonTable.getFactTableId)
     )
     )
 
@@ -1372,6 +1372,9 @@ private[sql] case class LoadCube(
         sys.error(s"Cube $schemaName.$tableName does not exist")
       }
       val carbonLoadModel = new CarbonLoadModel()
+      val absTableIdentifier = new AbsoluteTableIdentifier(relation.cubeMeta.dataPath,
+          relation.cubeMeta.carbonTableIdentifier)
+      carbonLoadModel.setAbsTableIdentifier(absTableIdentifier)
       carbonLoadModel.setTableName(relation.cubeMeta.carbonTableIdentifier.getTableName)
       carbonLoadModel.setDatabaseName(relation.cubeMeta.carbonTableIdentifier.getDatabaseName)
       if (dimFilesPath.isEmpty) {
@@ -1951,19 +1954,21 @@ private[sql] case class DeleteLoadByDate(
       level = matches.asJava.get(0).name
     }
     val tableName = relation.metaData.carbonTable.getFactTableName
+    val tableId = relation.metaData.carbonTable.getFactTableId
 
     val actualColName = relation.metaData.carbonTable.getDimensionByName(tableName, level)
       .getColName
+
+    val absTableIdentifier = new AbsoluteTableIdentifier(
+      relation.cubeMeta.dataPath,
+      new CarbonTableIdentifier(schemaName, tableName, tableId))
     CarbonDataRDDFactory.deleteLoadByDate(
       sqlContext,
       new CarbonDataLoadSchema(carbonTable),
-      schemaName,
-      cubeName,
-      tableName,
-      CarbonEnv.getInstance(sqlContext).carbonCatalog.storePath,
       level,
       actualColName,
       dateValue,
+      absTableIdentifier,
       relation.cubeMeta.partitioner)
     LOGGER.audit("The delete load by date is successfull.")
     Seq.empty

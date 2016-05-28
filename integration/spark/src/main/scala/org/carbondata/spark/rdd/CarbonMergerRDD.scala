@@ -65,9 +65,7 @@ class CarbonMergerRDD[K, V](
       val mergedLoadMetadataDetails = CarbonDataMergerUtil
         .executeMerging(model, storeLocation, hdfsStoreLocation, currentRestructNumber,
           metadataFilePath, loadsToMerge, mergedLoadName)
-      var segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier
-      (CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-        new CarbonTableIdentifier(model.getDatabaseName, model.getTableName)))
+      var segmentStatusManager = new SegmentStatusManager(carbonLoadModel.getAbsTableIdentifier)
       model.setLoadMetadataDetails(segmentStatusManager
         .readLoadMetadata(metadataFilePath).toList.asJava)
 

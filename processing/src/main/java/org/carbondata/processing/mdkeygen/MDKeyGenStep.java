@@ -32,6 +32,8 @@ import org.carbondata.common.logging.LogService;
 import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.common.logging.impl.StandardLogService;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.metadata.CarbonMetadata;
+import org.carbondata.core.carbon.metadata.schema.table.CarbonTable;
 import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.carbon.path.CarbonTablePath;
 import org.carbondata.core.constants.CarbonCommonConstants;
@@ -237,8 +239,12 @@ public class MDKeyGenStep extends BaseStep {
     String tempLocationKey = meta.getSchemaName() + '_' + meta.getCubeName();
     String baseStorePath = CarbonProperties.getInstance()
         .getProperty(tempLocationKey, CarbonCommonConstants.STORE_LOCATION_DEFAULT_VAL);
+    CarbonTable carbonTable = CarbonMetadata.getInstance()
+            .getCarbonTable(meta.getSchemaName() + CarbonCommonConstants.UNDERSCORE
+            + meta.getCubeName());
     CarbonTableIdentifier carbonTableIdentifier =
-        new CarbonTableIdentifier(meta.getSchemaName(), meta.getCubeName());
+        new CarbonTableIdentifier(meta.getSchemaName(), meta.getCubeName(),
+             carbonTable.getFactTableId());
     CarbonTablePath carbonTablePath =
         CarbonStorePath.getCarbonTablePath(baseStorePath, carbonTableIdentifier);
     String partitionId = meta.getPartitionID();
@@ -477,8 +483,12 @@ public class MDKeyGenStep extends BaseStep {
   private String getCarbonDataFolderLocation() {
     String carbonStorePath =
         CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION_HDFS);
+    CarbonTable carbonTable = CarbonMetadata.getInstance()
+            .getCarbonTable(meta.getSchemaName() + CarbonCommonConstants.UNDERSCORE
+            + meta.getCubeName());
     CarbonTableIdentifier carbonTableIdentifier =
-        new CarbonTableIdentifier(meta.getSchemaName(), meta.getTableName());
+        new CarbonTableIdentifier(meta.getSchemaName(), meta.getTableName(),
+            carbonTable.getFactTableId());
     CarbonTablePath carbonTablePath =
         CarbonStorePath.getCarbonTablePath(carbonStorePath, carbonTableIdentifier);
     String carbonDataDirectoryPath =

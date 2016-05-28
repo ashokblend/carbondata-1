@@ -160,7 +160,7 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
   def checkDictionary(relation: CarbonRelation, columnName: String, value: String) {
     val table = relation.cubeMeta.carbonTable
     val dimension = table.getDimensionByName(table.getFactTableName, columnName)
-    val tableIdentifier = new CarbonTableIdentifier(table.getDatabaseName, table.getFactTableName)
+    val tableIdentifier = new CarbonTableIdentifier(table.getDatabaseName, table.getFactTableName, -1)
 
     val columnIdentifier = new DictionaryColumnUniqueIdentifier(tableIdentifier,
       dimension.getColumnId, dimension.getDataType

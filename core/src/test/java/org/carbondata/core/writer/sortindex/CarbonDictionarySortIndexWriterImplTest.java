@@ -58,7 +58,7 @@ public class CarbonDictionarySortIndexWriterImplTest {
    */
   @Test public void write() throws Exception {
     String storePath = hdfsStorePath;
-    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon");
+    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon", -1);
     CarbonDictionarySortIndexWriter dictionarySortIndexWriter =
         new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, "Name", storePath);
     List<int[]> indexList = prepareExpectedData();
@@ -83,7 +83,7 @@ public class CarbonDictionarySortIndexWriterImplTest {
    */
   @Test public void writingEmptyValue() throws Exception {
     String storePath = hdfsStorePath;
-    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon");
+    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon", -1);
     CarbonDictionarySortIndexWriter dictionarySortIndexWriter =
         new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, "Name", storePath);
     List<Integer> sortIndex = new ArrayList<>();

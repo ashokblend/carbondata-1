@@ -40,8 +40,10 @@ import java.util.concurrent.TimeUnit;
 import org.carbondata.common.logging.LogService;
 import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.metadata.CarbonMetadata;
 import org.carbondata.core.carbon.metadata.converter.SchemaConverter;
 import org.carbondata.core.carbon.metadata.converter.ThriftWrapperSchemaConverterImpl;
+import org.carbondata.core.carbon.metadata.schema.table.CarbonTable;
 import org.carbondata.core.carbon.metadata.schema.table.column.ColumnSchema;
 import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.carbon.path.CarbonTablePath;
@@ -163,7 +165,7 @@ public abstract class AbstractFactDataWriter<T> implements CarbonFactDataWriter<
   private FileOutputStream fileOutputStream;
 
   public AbstractFactDataWriter(String storeLocation, int measureCount, int mdKeyLength,
-      String tableName, IFileManagerComposite fileManager, int[] keyBlockSize,
+      String databaseName, String tableName, IFileManagerComposite fileManager, int[] keyBlockSize,
       CarbonDataFileAttributes carbonDataFileAttributes, List<ColumnSchema> columnSchema,
       String carbonDataDirectoryPath) {
 
@@ -171,6 +173,7 @@ public abstract class AbstractFactDataWriter<T> implements CarbonFactDataWriter<
     this.measureCount = measureCount;
     // table name
     this.tableName = tableName;
+    this.databaseName = databaseName;
 
     this.storeLocation = storeLocation;
     this.blockletInfoList =
@@ -197,7 +200,11 @@ public abstract class AbstractFactDataWriter<T> implements CarbonFactDataWriter<
     this.localCardinality =
         CarbonMergerUtil.getCardinalityFromLevelMetadata(storeLocation, tableName);
     this.carbonDataFileAttributes = carbonDataFileAttributes;
-    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier(databaseName, tableName);
+    CarbonTable carbonTable = CarbonMetadata.getInstance()
+            .getCarbonTable(databaseName + CarbonCommonConstants.UNDERSCORE
+              + tableName);
+    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier(databaseName, tableName,
+          carbonTable.getFactTableId());
     carbonTablePath = CarbonStorePath.getCarbonTablePath(storeLocation, tableIdentifier);
     List<Integer> cardinalityList = new ArrayList<Integer>();
     thriftColumnSchemaList =

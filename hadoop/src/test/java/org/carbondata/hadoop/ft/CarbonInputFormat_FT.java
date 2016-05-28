@@ -51,7 +51,7 @@ public class CarbonInputFormat_FT extends TestCase {
     CarbonInputFormat carbonInputFormat = new CarbonInputFormat();
     JobConf jobConf = new JobConf(new Configuration());
     Job job = new Job(jobConf);
-    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("db", "table1");
+    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("db", "table1", -1);
     FileInputFormat.addInputPath(job, new Path("/opt/carbonstore/"));
     CarbonInputFormat.setTableToAccess(job.getConfiguration(), tableIdentifier);
 //    CarbonInputFormat.setSegmentsToAccess(job, Arrays.asList(1, 2));
@@ -65,7 +65,7 @@ public class CarbonInputFormat_FT extends TestCase {
     CarbonInputFormat carbonInputFormat = new CarbonInputFormat();
     JobConf jobConf = new JobConf(new Configuration());
     Job job = new Job(jobConf);
-    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("db", "table1");
+    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("db", "table1", -1);
     FileInputFormat.addInputPath(job, new Path("/opt/carbonstore/"));
     CarbonInputFormat.setTableToAccess(job.getConfiguration(), tableIdentifier);
 //    CarbonInputFormat.setSegmentsToAccess(job, Arrays.asList(1, 2));

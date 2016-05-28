@@ -29,6 +29,7 @@ import org.carbondata.core.cache.CacheProvider;
 import org.carbondata.core.cache.CacheType;
 import org.carbondata.core.cache.dictionary.Dictionary;
 import org.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
+import org.carbondata.core.carbon.AbsoluteTableIdentifier;
 import org.carbondata.core.carbon.CarbonDataLoadSchema;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
 import org.carbondata.core.carbon.datastore.block.TableBlockInfo;
@@ -61,6 +62,7 @@ import org.carbondata.processing.util.CarbonDataProcessorUtil;
 import org.carbondata.spark.merger.NodeBlockRelation;
 
 import com.google.gson.Gson;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
@@ -407,7 +409,7 @@ public final class CarbonLoaderUtil {
     String databaseName = loadModel.getDatabaseName();
     String tableName = loadModel.getTableName();
     CarbonTableIdentifier carbonTableIdentifier =
-        new CarbonTableIdentifier(databaseName, tableName);
+         loadModel.getAbsTableIdentifier().getCarbonTableIdentifier();
     String segmentId = segmentName.substring(CarbonCommonConstants.LOAD_FOLDER.length());
     String tempLocationKey = databaseName + '_' + tableName;
     // form local store location
@@ -423,7 +425,6 @@ public final class CarbonLoaderUtil {
 
   /**
    * This method will copy the current segment load to cgiven carbon store path
-   *
    * @param loadModel
    * @param segmentName
    * @param updatedSlices
@@ -440,7 +441,7 @@ public final class CarbonLoaderUtil {
     String aggTableName = loadModel.getAggTableName();
     if (copyStore) {
       CarbonTableIdentifier carbonTableIdentifier =
-          new CarbonTableIdentifier(databaseName, tableName);
+               loadModel.getAbsTableIdentifier().getCarbonTableIdentifier();
       String segmentId = segmentName.substring(CarbonCommonConstants.LOAD_FOLDER.length());
       // form carbon store location
       String carbonStoreLocation = getStoreLocation(
@@ -725,16 +726,16 @@ public final class CarbonLoaderUtil {
 
       CarbonUtil.closeStreams(dataInputStream);
     }
-    writeLoadMetadata(loadModel.getCarbonDataLoadSchema(), loadModel.getDatabaseName(),
-        loadModel.getTableName(), listOfLoadFolderDetails);
-
+    writeLoadMetadata(loadModel.getCarbonDataLoadSchema(), loadModel.getAbsTableIdentifier(),
+            listOfLoadFolderDetails);
   }
 
-  public static void writeLoadMetadata(CarbonDataLoadSchema schema, String schemaName,
-      String tableName, List<LoadMetadataDetails> listOfLoadFolderDetails) throws IOException {
+  public static void writeLoadMetadata(CarbonDataLoadSchema schema,
+      AbsoluteTableIdentifier absTableIdentifier, List<LoadMetadataDetails> listOfLoadFolderDetails)
+      throws IOException {
     CarbonTablePath carbonTablePath = CarbonStorePath.getCarbonTablePath(
-        CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-        new CarbonTableIdentifier(schemaName, tableName));
+        absTableIdentifier.getStorePath(),
+        absTableIdentifier.getCarbonTableIdentifier());
     String dataLoadLocation = carbonTablePath.getTableStatusFilePath();
 
     DataOutputStream dataOutputStream;
@@ -1210,11 +1211,11 @@ public final class CarbonLoaderUtil {
    * @param partitionCount
    * @param segmentId
    */
-  public static void checkAndCreateCarbonDataLocation(String carbonStorePath, String dbName,
-      String tableName, int partitionCount, int segmentId) {
-    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableName);
-    CarbonTablePath carbonTablePath =
-        CarbonStorePath.getCarbonTablePath(carbonStorePath, carbonTableIdentifier);
+  public static void checkAndCreateCarbonDataLocation(AbsoluteTableIdentifier absTableIdentifier,
+      int partitionCount, int segmentId) {
+    CarbonTablePath carbonTablePath = CarbonStorePath
+        .getCarbonTablePath(absTableIdentifier.getStorePath(),
+            absTableIdentifier.getCarbonTableIdentifier());
     for (int i = 0; i < partitionCount; i++) {
       String carbonDataDirectoryPath =
           carbonTablePath.getCarbonDataDirectoryPath(String.valueOf(i), segmentId);

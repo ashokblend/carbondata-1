@@ -46,6 +46,8 @@ import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.common.logging.impl.StandardLogService;
 import org.carbondata.core.cache.dictionary.Dictionary;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.metadata.CarbonMetadata;
+import org.carbondata.core.carbon.metadata.schema.table.CarbonTable;
 import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.carbon.path.CarbonTablePath;
 import org.carbondata.core.constants.CarbonCommonConstants;
@@ -70,6 +72,7 @@ import org.carbondata.processing.schema.metadata.HierarchiesInfo;
 import org.carbondata.processing.util.RemoveDictionaryUtil;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
@@ -653,8 +656,12 @@ public class CarbonCSVBasedSeqGenStep extends BaseStep {
     String tempLocationKey = meta.getSchemaName() + '_' + meta.getCubeName();
     String baseStorePath = CarbonProperties.getInstance()
         .getProperty(tempLocationKey, CarbonCommonConstants.STORE_LOCATION_DEFAULT_VAL);
+    CarbonTable carbonTable = CarbonMetadata.getInstance()
+            .getCarbonTable(meta.getSchemaName() + CarbonCommonConstants.UNDERSCORE
+            + meta.getCubeName());
     CarbonTableIdentifier carbonTableIdentifier =
-        new CarbonTableIdentifier(meta.getSchemaName(), meta.getCubeName());
+        new CarbonTableIdentifier(meta.getSchemaName(), meta.getCubeName(),
+                carbonTable.getFactTableId());
     CarbonTablePath carbonTablePath =
         CarbonStorePath.getCarbonTablePath(baseStorePath, carbonTableIdentifier);
     String partitionId = meta.getPartitionID();

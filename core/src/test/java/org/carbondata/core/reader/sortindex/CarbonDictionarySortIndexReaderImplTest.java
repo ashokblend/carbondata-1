@@ -56,7 +56,7 @@ public class CarbonDictionarySortIndexReaderImplTest {
    */
   @Test public void read() throws Exception {
     deleteStorePath();
-    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon");
+    CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon", -1);
     CarbonDictionarySortIndexWriter dictionarySortIndexWriter =
         new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, "Name", hdfsStorePath);
     List<int[]> expectedData = prepareExpectedData();

@@ -95,7 +95,7 @@ public class CarbonDictionaryWriterImplTest {
     this.tableName = props.getProperty("tableName", "carbon");
     this.carbonStorePath = props.getProperty("storePath", "carbonStore");
     this.columnIdentifier = "Name";
-    carbonTableIdentifier = new CarbonTableIdentifier(databaseName, tableName);
+    carbonTableIdentifier = new CarbonTableIdentifier(databaseName, tableName, -1);
     deleteStorePath();
     prepareDataSet();
   }

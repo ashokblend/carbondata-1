@@ -25,6 +25,7 @@ package org.carbondata.spark.load;
 import java.io.Serializable;
 import java.util.List;
 
+import org.carbondata.core.carbon.AbsoluteTableIdentifier;
 import org.carbondata.core.carbon.CarbonDataLoadSchema;
 import org.carbondata.core.load.LoadMetadataDetails;
 
@@ -79,6 +80,11 @@ public class CarbonLoadModel implements Serializable {
    * load Id
    */
   private String segmentId;
+
+  /**
+   * absolute table identifier
+   */
+  private AbsoluteTableIdentifier absTableIdentifier;
 
   /**
    * get blocck id
@@ -227,6 +233,7 @@ public class CarbonLoadModel implements Serializable {
   public CarbonLoadModel getCopyWithPartition(String uniqueId) {
     CarbonLoadModel copy = new CarbonLoadModel();
     copy.tableName = tableName;
+    copy.absTableIdentifier = absTableIdentifier;
     copy.dimFolderPath = dimFolderPath;
     copy.factFilePath = factFilePath + '/' + uniqueId;
     copy.databaseName = databaseName;
@@ -258,6 +265,7 @@ public class CarbonLoadModel implements Serializable {
   public CarbonLoadModel getCopyWithPartition(String uniqueId, List<String> filesForPartition,
       String header, String delimiter) {
     CarbonLoadModel copyObj = new CarbonLoadModel();
+    copyObj.absTableIdentifier = absTableIdentifier;
     copyObj.tableName = tableName;
     copyObj.dimFolderPath = dimFolderPath;
     copyObj.factFilePath = null;
@@ -431,4 +439,19 @@ public class CarbonLoadModel implements Serializable {
   public void setSegmentId(String segmentId) {
     this.segmentId = segmentId;
   }
+
+  /**
+   * @return
+   */
+  public AbsoluteTableIdentifier getAbsTableIdentifier() {
+    return absTableIdentifier;
+  }
+
+  /**
+   * @param absTableIdentifier
+   */
+  public void setAbsTableIdentifier(AbsoluteTableIdentifier absTableIdentifier) {
+    this.absTableIdentifier = absTableIdentifier;
+  }
+
 }

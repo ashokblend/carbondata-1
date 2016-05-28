@@ -486,7 +486,8 @@ case class CarbonTableScan(
 
     val conf = new Configuration()
     val absoluteTableIdentifier = new AbsoluteTableIdentifier(carbonCatalog.storePath,
-      new CarbonTableIdentifier(carbonTable.getDatabaseName, carbonTable.getFactTableName))
+      new CarbonTableIdentifier(carbonTable.getDatabaseName, carbonTable.getFactTableName,
+          carbonTable.getFactTableId))
 
     val model = QueryModel.createModel(
       absoluteTableIdentifier, buildCarbonPlan, carbonTable)
@@ -522,7 +523,8 @@ case class CarbonTableScan(
     // count(*) query executed in driver by querying from Btree
     if (buildCarbonPlan.isCountStarQuery && null == buildCarbonPlan.getFilterExpression) {
       val absoluteTableIdentifier = new AbsoluteTableIdentifier(carbonCatalog.storePath,
-        new CarbonTableIdentifier(carbonTable.getDatabaseName, carbonTable.getFactTableName)
+        new CarbonTableIdentifier(carbonTable.getDatabaseName, carbonTable.getFactTableName,
+            carbonTable.getFactTableId)
       )
       val (carbonInputFormat: CarbonInputFormat[RowResult], job: Job) =
         QueryPlanUtil.createCarbonInputFormat(absoluteTableIdentifier)

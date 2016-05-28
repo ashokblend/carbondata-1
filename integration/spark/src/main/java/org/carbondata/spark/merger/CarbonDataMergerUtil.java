@@ -27,8 +27,6 @@ import java.util.List;
 
 import org.carbondata.common.logging.LogService;
 import org.carbondata.common.logging.LogServiceFactory;
-import org.carbondata.core.carbon.AbsoluteTableIdentifier;
-import org.carbondata.core.carbon.CarbonTableIdentifier;
 import org.carbondata.core.carbon.metadata.schema.table.CarbonTable;
 import org.carbondata.core.constants.CarbonCommonConstants;
 import org.carbondata.core.datastorage.store.filesystem.CarbonFile;
@@ -84,11 +82,8 @@ public final class CarbonDataMergerUtil {
       toLoadMergeMaxSize = Integer.parseInt(CarbonCommonConstants.TO_LOAD_MERGE_MAX_SIZE_DEFAULT);
     }
 
-    SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
-        new AbsoluteTableIdentifier(
-            storeLocation,
-            new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
-                carbonLoadModel.getTableName())));
+    SegmentStatusManager segmentStatusManager =
+        new SegmentStatusManager(carbonLoadModel.getAbsTableIdentifier());
 
     LoadMetadataDetails[] loadDetails = segmentStatusManager.readLoadMetadata(metadataPath);
 
@@ -256,11 +251,8 @@ public final class CarbonDataMergerUtil {
       mergeThreshold = Integer.parseInt(CarbonCommonConstants.MERGE_THRESHOLD_DEFAULT_VAL);
     }
 
-    SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
-        new AbsoluteTableIdentifier(
-            storeLocation,
-            new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
-                carbonLoadModel.getTableName())));
+    SegmentStatusManager segmentStatusManager =
+        new SegmentStatusManager(carbonLoadModel.getAbsTableIdentifier());
     LoadMetadataDetails[] details = segmentStatusManager.readLoadMetadata(metadataFilePath);
 
     int validLoadsNumber = getNumberOfValidLoads(details, loadFiles);
@@ -338,11 +330,8 @@ public final class CarbonDataMergerUtil {
   public static void updateLoadMetadataWithMergeStatus(List<String> loadsToMerge,
       String metaDataFilepath, String MergedLoadName, CarbonLoadModel carbonLoadModel) {
 
-    SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
-        new AbsoluteTableIdentifier(
-            carbonLoadModel.getFactStoreLocation(),
-            new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
-                carbonLoadModel.getTableName())));
+    SegmentStatusManager segmentStatusManager =
+        new SegmentStatusManager(carbonLoadModel.getAbsTableIdentifier());
     LoadMetadataDetails[] loadDetails = segmentStatusManager.readLoadMetadata(metaDataFilepath);
 
     boolean first = true;
@@ -371,8 +360,7 @@ public final class CarbonDataMergerUtil {
 
     try {
       CarbonLoaderUtil.writeLoadMetadata(carbonLoadModel.getCarbonDataLoadSchema(),
-          carbonLoadModel.getDatabaseName(), carbonLoadModel.getTableName(),
-          Arrays.asList(loadDetails));
+          carbonLoadModel.getAbsTableIdentifier(), Arrays.asList(loadDetails));
     } catch (IOException e) {
       LOGGER.error("Error while writing metadata");
     }
@@ -388,11 +376,8 @@ public final class CarbonDataMergerUtil {
     String loadMetadataFilePath = cube.getMetaDataFilepath();
     //String loadMetadataFilePath = CarbonLoaderUtil.extractLoadMetadataFileLocation(loadModel);
 
-    SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
-        new AbsoluteTableIdentifier(
-            storeLocation,
-            new CarbonTableIdentifier(loadModel.getDatabaseName(),
-                loadModel.getTableName())));
+    SegmentStatusManager segmentStatusManager =
+        new SegmentStatusManager(loadModel.getAbsTableIdentifier());
     LoadMetadataDetails[] details = segmentStatusManager.readLoadMetadata(loadMetadataFilePath);
 
     // for first time before any load , this will be null

@@ -37,11 +37,17 @@ public class CarbonTableIdentifier implements Serializable {
   private String tableName;
 
   /**
+   * table unique id
+   */
+  private int tableId;
+
+  /**
    * constructor
    */
-  public CarbonTableIdentifier(String databaseName, String tableName) {
+  public CarbonTableIdentifier(String databaseName, String tableName, int tableId) {
     this.databaseName = databaseName;
     this.tableName = tableName;
+    this.tableId = tableId;
   }
 
   /**
@@ -66,35 +72,49 @@ public class CarbonTableIdentifier implements Serializable {
   }
 
   /**
-   * overridden equals method
-   *
-   * @param other
-   * @return
-   */
-  @Override public boolean equals(Object other) {
-    if (this == other) return true;
-    if (other == null || getClass() != other.getClass()) return false;
-    CarbonTableIdentifier that = (CarbonTableIdentifier) other;
-    if (!databaseName.equals(that.databaseName)) return false;
-    return tableName.equals(that.tableName);
-
-  }
-
-  /**
-   * overridden hashcode method
-   *
+   * get hascode
    * @return
    */
   @Override public int hashCode() {
-    int result = databaseName.hashCode();
-    result = 31 * result + tableName.hashCode();
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((databaseName == null) ? 0 : databaseName.hashCode());
+    result = prime * result + tableId;
+    result = prime * result + ((tableName == null) ? 0 : tableName.hashCode());
     return result;
   }
 
-  /*
-   * @return table unidque name
+  /**
+   * exquals implementation
+   * @param obj
+   * @return
    */
+  @Override public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    CarbonTableIdentifier other = (CarbonTableIdentifier) obj;
+    if (databaseName == null) {
+      if (other.databaseName != null) return false;
+    } else if (!databaseName.equals(other.databaseName)) return false;
+    if (tableId != other.tableId) return false;
+    if (tableName == null) {
+      if (other.tableName != null) return false;
+    } else if (!tableName.equals(other.tableName)) return false;
+    return true;
+  }
+
+  /*
+ * @return table unidque name
+ */
   @Override public String toString() {
     return databaseName + '_' + tableName;
+  }
+
+  /**
+   * @return tableId
+   */
+  public int getTableId() {
+    return tableId;
   }
 }

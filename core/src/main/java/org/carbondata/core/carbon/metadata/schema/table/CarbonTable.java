@@ -61,6 +61,11 @@ public class CarbonTable implements Serializable {
   private String factTableName;
 
   /**
+   * fact table unique identifier
+   */
+  private int factTable_id;
+
+  /**
    * tableUniqueName
    */
   private String tableUniqueName;
@@ -94,6 +99,7 @@ public class CarbonTable implements Serializable {
     this.databaseName = tableInfo.getDatabaseName();
     this.tableUniqueName = tableInfo.getTableUniqueName();
     this.factTableName = tableInfo.getFactTable().getTableName();
+    this.factTable_id = tableInfo.getFactTable().getTableId();
     this.metaDataFilepath = tableInfo.getMetaDataFilepath();
     fillDimensionsAndMeasuresForTables(tableInfo.getFactTable());
     List<TableSchema> aggregateTableList = tableInfo.getAggregateTableList();
@@ -196,6 +202,10 @@ public class CarbonTable implements Serializable {
    */
   public String getFactTableName() {
     return factTableName;
+  }
+
+  public int getFactTableId() {
+    return factTable_id;
   }
 
   /**

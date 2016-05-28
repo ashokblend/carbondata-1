@@ -44,7 +44,7 @@ object GenerateDictionaryExample {
     val kettleHome = new File(pwd + "/../processing/carbonplugins").getCanonicalPath
     val hiveMetaPath = pwd + "/target/hivemetadata"
     val carbonTablePath = CarbonStorePath.getCarbonTablePath(storeLocation,
-      new CarbonTableIdentifier("default", "dictSample"))
+      new CarbonTableIdentifier("default", "dictSample", 1))
     val dictFolderPath = carbonTablePath.getMetadataDirectoryPath
 
     val cc = new CarbonContext(sc, storeLocation)
@@ -63,7 +63,7 @@ object GenerateDictionaryExample {
            """)
 
     // check generated dictionary
-    val tableIdentifier = new CarbonTableIdentifier("default", "dictSample")
+    val tableIdentifier = new CarbonTableIdentifier("default", "dictSample", 1)
     printDictionary(cc, tableIdentifier, dictFolderPath)
   }
 

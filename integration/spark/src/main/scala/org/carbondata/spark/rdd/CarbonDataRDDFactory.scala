@@ -104,43 +104,39 @@ object CarbonDataRDDFactory extends Logging {
   def deleteLoadByDate(
       sqlContext: SQLContext,
       schema: CarbonDataLoadSchema,
-      schemaName: String,
-      cubeName: String,
-      tableName: String,
-      hdfsStoreLocation: String,
       dateField: String,
       dateFieldActualName: String,
       dateValue: String,
+      absTableIdentifier: AbsoluteTableIdentifier,
       partitioner: Partitioner) {
 
     val sc = sqlContext
     // Delete the records based on data
+    val carbonTableIdentifier = absTableIdentifier.getCarbonTableIdentifier
     val cube = org.carbondata.core.carbon.metadata.CarbonMetadata.getInstance
-      .getCarbonTable(schemaName + "_" + cubeName)
+      .getCarbonTable(carbonTableIdentifier.getDatabaseName +
+                      "_" + carbonTableIdentifier.getTableName)
 
     var currentRestructNumber = CarbonUtil
       .checkAndReturnCurrentRestructFolderNumber(cube.getMetaDataFilepath, "RS_", false)
     if (-1 == currentRestructNumber) {
       currentRestructNumber = 0
     }
-    var segmentStatusManager = new SegmentStatusManager(
-      new AbsoluteTableIdentifier(
-        CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-        new CarbonTableIdentifier(schemaName, tableName)));
+    var segmentStatusManager = new SegmentStatusManager(absTableIdentifier);
     val loadMetadataDetailsArray = segmentStatusManager.readLoadMetadata(cube.getMetaDataFilepath())
       .toList
     val resultMap = new CarbonDeleteLoadByDateRDD(
       sc.sparkContext,
       new DeletedLoadResultImpl(),
-      schemaName,
+      carbonTableIdentifier.getDatabaseName,
       cube.getDatabaseName,
       dateField,
       dateFieldActualName,
       dateValue,
       partitioner,
       cube.getFactTableName,
-      tableName,
-      hdfsStoreLocation,
+      carbonTableIdentifier.getTableName,
+      absTableIdentifier.getStorePath,
       loadMetadataDetailsArray,
       currentRestructNumber).collect.groupBy(_._1)
 
@@ -186,15 +182,15 @@ object CarbonDataRDDFactory extends Logging {
         if (carbonLock.lockWithRetries()) {
           logInfo("Successfully got the cube metadata file lock")
           if (updatedLoadMetadataDetailsList.nonEmpty) {
-            LoadAggregateTabAfterRetention(schemaName, cube.getFactTableName, cube.getFactTableName,
+            LoadAggregateTabAfterRetention(carbonTableIdentifier.getDatabaseName,
+                cube.getFactTableName, cube.getFactTableName,
               sqlContext, schema, updatedLoadMetadataDetailsList)
           }
 
           // write
           CarbonLoaderUtil.writeLoadMetadata(
             schema,
-            schemaName,
-            cube.getDatabaseName,
+            absTableIdentifier,
             updatedloadMetadataDetails.asJava)
         }
       } finally {
@@ -388,8 +384,7 @@ object CarbonDataRDDFactory extends Logging {
           blocksGroupBy = new DummyLoadRDD(newHadoopRDD).collect().groupBy[String](_._1)
             .map { iter => (iter._1, iter._2.map(_._2)) }.toArray
       }
-      CarbonLoaderUtil.checkAndCreateCarbonDataLocation(hdfsStoreLocation,
-        carbonLoadModel.getDatabaseName, carbonLoadModel.getTableName,
+      CarbonLoaderUtil.checkAndCreateCarbonDataLocation(carbonLoadModel.getAbsTableIdentifier,
         partitioner.partitionCount, currentLoadCount)
       val status = new
           CarbonDataLoadRDD(sc.sparkContext, new ResultImpl(), carbonLoadModel, storeLocation,
@@ -511,10 +506,7 @@ object CarbonDataRDDFactory extends Logging {
 
   def readLoadMetadataDetails(model: CarbonLoadModel, hdfsStoreLocation: String): Unit = {
     val metadataPath = model.getCarbonDataLoadSchema.getCarbonTable.getMetaDataFilepath
-    var segmentStatusManager = new SegmentStatusManager(
-      new AbsoluteTableIdentifier(
-        CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-        new CarbonTableIdentifier(model.getDatabaseName, model.getTableName)));
+    var segmentStatusManager = new SegmentStatusManager(model.getAbsTableIdentifier);
     val details = segmentStatusManager.readLoadMetadata(metadataPath)
     model.setLoadMetadataDetails(details.toList.asJava)
   }
@@ -528,12 +520,7 @@ object CarbonDataRDDFactory extends Logging {
     if (LoadMetadataUtil.isLoadDeletionRequired(carbonLoadModel)) {
       val loadMetadataFilePath = CarbonLoaderUtil
         .extractLoadMetadataFileLocation(carbonLoadModel)
-      var segmentStatusManager = new SegmentStatusManager(
-        new AbsoluteTableIdentifier(
-          CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
-          new CarbonTableIdentifier(carbonLoadModel.getDatabaseName, carbonLoadModel.getTableName)
-        )
-      );
+      var segmentStatusManager = new SegmentStatusManager(carbonLoadModel.getAbsTableIdentifier);
       val details = segmentStatusManager
         .readLoadMetadata(loadMetadataFilePath)
 
@@ -546,8 +533,7 @@ object CarbonDataRDDFactory extends Logging {
         // Update load metadate file after cleaning deleted nodes
         CarbonLoaderUtil.writeLoadMetadata(
           carbonLoadModel.getCarbonDataLoadSchema,
-          carbonLoadModel.getDatabaseName,
-          carbonLoadModel.getTableName, details.toList.asJava)
+          carbonLoadModel.getAbsTableIdentifier, details.toList.asJava)
       }
     }
 // TODO:Need to hanlde this scanario for data compaction

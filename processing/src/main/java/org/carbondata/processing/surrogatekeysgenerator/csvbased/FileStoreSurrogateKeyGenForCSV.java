@@ -36,6 +36,8 @@ import org.carbondata.core.cache.CacheType;
 import org.carbondata.core.cache.dictionary.Dictionary;
 import org.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.metadata.CarbonMetadata;
+import org.carbondata.core.carbon.metadata.schema.table.CarbonTable;
 import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.carbon.path.CarbonTablePath;
 import org.carbondata.core.constants.CarbonCommonConstants;
@@ -191,8 +193,11 @@ public class FileStoreSurrogateKeyGenForCSV extends CarbonCSVBasedDimSurrogateKe
 
   private String checkAndCreateLoadFolderNumber(String baseStorePath, String databaseName,
       String tableName) throws KettleException {
+    CarbonTable carbonTable = CarbonMetadata.getInstance()
+                .getCarbonTable(databaseName + CarbonCommonConstants.UNDERSCORE
+                + tableName);
     CarbonTableIdentifier carbonTableIdentifier =
-        new CarbonTableIdentifier(databaseName, tableName);
+        new CarbonTableIdentifier(databaseName, tableName, carbonTable.getFactTableId());
     CarbonTablePath carbonTablePath =
         CarbonStorePath.getCarbonTablePath(baseStorePath, carbonTableIdentifier);
     String carbonDataDirectoryPath =
@@ -251,8 +256,11 @@ public class FileStoreSurrogateKeyGenForCSV extends CarbonCSVBasedDimSurrogateKe
     String[] dimColumnIds = columnsInfo.getDimensionColumnIds();
     String databaseName = columnsInfo.getSchemaName();
     String tableName = columnsInfo.getTableName();
+    CarbonTable carbonTable = CarbonMetadata.getInstance()
+            .getCarbonTable(databaseName + CarbonCommonConstants.UNDERSCORE
+            + tableName);
     CarbonTableIdentifier carbonTableIdentifier =
-        new CarbonTableIdentifier(databaseName, tableName);
+        new CarbonTableIdentifier(databaseName, tableName, carbonTable.getFactTableId());
     CacheProvider cacheProvider = CacheProvider.getInstance();
     Cache reverseDictionaryCache =
         cacheProvider.createCache(CacheType.REVERSE_DICTIONARY, carbonStorePath);

@@ -40,7 +40,7 @@ public class CarbonFormatDirectoryStructureTest {
    * test table path methods
    */
   @Test public void testTablePathStructure() throws IOException {
-    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("d1", "t1");
+    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("d1", "t1",-1);
     CarbonStorePath carbonStorePath = new CarbonStorePath(CARBON_STORE);
     CarbonTablePath carbonTablePath = carbonStorePath.getCarbonTablePath(tableIdentifier);
     assertTrue(carbonTablePath.getPath().equals(CARBON_STORE + "/d1/t1"));

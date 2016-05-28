@@ -50,8 +50,9 @@ public class CarbonFactDataWriterImplForIntIndexAndAggBlock extends AbstractFact
       CarbonDataFileAttributes carbonDataFileAttributes, String databaseName,
       List<ColumnSchema> wrapperColumnSchemaList, int numberOfNoDictionaryColumn,
       boolean[] isDictionaryColumn, String carbonDataDirectoryPath) {
-    super(storeLocation, measureCount, mdKeyLength, tableName, fileManager, keyBlockSize,
-        carbonDataFileAttributes, wrapperColumnSchemaList, carbonDataDirectoryPath);
+    super(storeLocation, measureCount, mdKeyLength, databaseName, tableName, fileManager,
+          keyBlockSize,carbonDataFileAttributes,wrapperColumnSchemaList,
+          carbonDataDirectoryPath);
     this.isComplexType = isComplexType;
     this.databaseName = databaseName;
     this.numberOfNoDictionaryColumn = numberOfNoDictionaryColumn;

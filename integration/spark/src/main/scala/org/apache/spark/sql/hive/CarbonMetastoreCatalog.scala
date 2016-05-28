@@ -36,6 +36,7 @@ import org.apache.spark.sql.hive.client.ClientInterface
 import org.apache.spark.sql.types._
 
 import org.carbondata.common.logging.LogServiceFactory
+import org.carbondata.core.carbon.AbsoluteTableIdentifier
 import org.carbondata.core.carbon.CarbonTableIdentifier
 import org.carbondata.core.carbon.metadata.CarbonMetadata
 import org.carbondata.core.carbon.metadata.converter.ThriftWrapperSchemaConverterImpl
@@ -266,7 +267,7 @@ class CarbonMetastoreCatalog(hive: HiveContext, val storePath: String, client: C
             cubeFolders.foreach(cubeFolder => {
               if (cubeFolder.isDirectory) {
                 val carbonTablePath = CarbonStorePath.getCarbonTablePath(basePath,
-                  new CarbonTableIdentifier(schemaFolder.getName, cubeFolder.getName))
+                  new CarbonTableIdentifier(schemaFolder.getName, cubeFolder.getName, -1))
                 val cubeMetadataFile = carbonTablePath.getSchemaFilePath
 
                 if (FileFactory.isFileExist(cubeMetadataFile, fileType)) {
@@ -287,12 +288,15 @@ class CarbonMetastoreCatalog(hive: HiveContext, val storePath: String, client: C
                   val schemaConverter = new ThriftWrapperSchemaConverterImpl
                   val wrapperTableInfo = schemaConverter
                     .fromExternalToWrapperTableInfo(tableInfo, dbName, tableName)
-                  val carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableName)
+                  val carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableName,
+                      wrapperTableInfo.getFactTable.getTableId)
                   val schemaFilePath = CarbonStorePath
                     .getCarbonTablePath(storePath, carbonTableIdentifier).getSchemaFilePath
                   wrapperTableInfo
                     .setMetaDataFilepath(CarbonTablePath.getFolderContainingFile(schemaFilePath))
                   CarbonMetadata.getInstance().loadTableMetadata(wrapperTableInfo)
+                  val absTableIdentifier = new AbsoluteTableIdentifier(storePath,
+                    carbonTableIdentifier)
                   metaDataBuffer += TableMeta(
                     carbonTableIdentifier,
                     storePath,
@@ -345,7 +349,8 @@ class CarbonMetastoreCatalog(hive: HiveContext, val storePath: String, client: C
     thriftTableInfo.getFact_table.getSchema_evolution.getSchema_evolution_history
       .add(schemaEvolutionEntry)
 
-    val carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableName)
+    val carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableName,
+        tableInfo.getFactTable.getTableId)
     val carbonTablePath = CarbonStorePath.getCarbonTablePath(storePath, carbonTableIdentifier)
     val schemaFilePath = carbonTablePath.getSchemaFilePath
     val schemaMetadataPath = CarbonTablePath.getFolderContainingFile(schemaFilePath)
