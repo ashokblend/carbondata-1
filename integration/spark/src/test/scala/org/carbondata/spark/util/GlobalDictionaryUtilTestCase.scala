@@ -30,6 +30,7 @@ import org.carbondata.core.carbon.{CarbonDataLoadSchema, CarbonTableIdentifier}
 import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.spark.load.CarbonLoadModel
 import org.carbondata.spark.load.CarbonLoaderUtil
+import org.carbondata.core.carbon.AbsoluteTableIdentifier
 
 import org.scalatest.BeforeAndAfterAll
 
@@ -57,8 +58,10 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     dimensionFilePath: String,
     header: String): CarbonLoadModel = {
     val carbonLoadModel = new CarbonLoadModel
+    val absTableIdentifier = new AbsoluteTableIdentifier(relation.cubeMeta.dataPath, relation.cubeMeta.carbonTableIdentifier)
     carbonLoadModel.setTableName(relation.cubeMeta.carbonTableIdentifier.getDatabaseName)
     carbonLoadModel.setDatabaseName(relation.cubeMeta.carbonTableIdentifier.getTableName)
+    carbonLoadModel.setAbsTableIdentifier(absTableIdentifier)
     // carbonLoadModel.setSchema(relation.cubeMeta.schema)
     val table = relation.cubeMeta.carbonTable
     val carbonSchema = new CarbonDataLoadSchema(table)
