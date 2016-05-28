@@ -73,6 +73,7 @@ public class CarbonTableIdentifier implements Serializable {
 
   /**
    * get hascode
+   *
    * @return
    */
   @Override public int hashCode() {
@@ -86,21 +87,38 @@ public class CarbonTableIdentifier implements Serializable {
 
   /**
    * exquals implementation
+   *
    * @param obj
    * @return
    */
   @Override public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     CarbonTableIdentifier other = (CarbonTableIdentifier) obj;
     if (databaseName == null) {
-      if (other.databaseName != null) return false;
-    } else if (!databaseName.equals(other.databaseName)) return false;
-    if (tableId != other.tableId) return false;
+      if (other.databaseName != null) {
+        return false;
+      }
+    } else if (!databaseName.equals(other.databaseName)) {
+      return false;
+    }
+    if (tableId != other.tableId) {
+      return false;
+    }
     if (tableName == null) {
-      if (other.tableName != null) return false;
-    } else if (!tableName.equals(other.tableName)) return false;
+      if (other.tableName != null) {
+        return false;
+      }
+    } else if (!tableName.equals(other.tableName)) {
+      return false;
+    }
     return true;
   }
 

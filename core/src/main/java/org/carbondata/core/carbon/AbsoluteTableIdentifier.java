@@ -82,16 +82,30 @@ public class AbsoluteTableIdentifier implements Serializable {
    * @param obj other object
    */
   @Override public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     AbsoluteTableIdentifier other = (AbsoluteTableIdentifier) obj;
     if (carbonTableIdentifier == null) {
-      if (other.carbonTableIdentifier != null) return false;
-    } else if (!carbonTableIdentifier.equals(other.carbonTableIdentifier)) return false;
+      if (other.carbonTableIdentifier != null) {
+        return false;
+      }
+    } else if (!carbonTableIdentifier.equals(other.carbonTableIdentifier)) {
+      return false;
+    }
     if (storePath == null) {
-      if (other.storePath != null) return false;
-    } else if (!storePath.equals(other.storePath)) return false;
+      if (other.storePath != null) {
+        return false;
+      }
+    } else if (!storePath.equals(other.storePath)) {
+      return false;
+    }
     return true;
   }
 
