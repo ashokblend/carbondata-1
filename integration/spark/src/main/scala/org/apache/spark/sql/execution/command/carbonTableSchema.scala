@@ -1800,9 +1800,11 @@ private[sql] case class ShowLoads(
 
   override def run(sqlContext: SQLContext): Seq[Row] = {
     val schemaName = getDB.getDatabaseName(schemaNameOp, sqlContext)
-    val tableIdentifier = new CarbonTableIdentifier(schemaName, tableName)
     val carbonTable = org.carbondata.core.carbon.metadata.CarbonMetadata.getInstance()
-      .getCarbonTable(tableIdentifier.getTableUniqueName)
+      .getCarbonTable(schemaName + "_" + tableName)
+    val tableIdentifier = new CarbonTableIdentifier(schemaName,
+      tableName,
+      carbonTable.getFactTableId)
     if (carbonTable == null) {
       sys.error(s"$schemaName.$tableName is not found")
     }
