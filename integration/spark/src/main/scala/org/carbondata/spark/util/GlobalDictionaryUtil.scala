@@ -423,7 +423,8 @@ object GlobalDictionaryUtil extends Logging {
                                   noDictDimension: Array[CarbonDimension]): Unit = {
 
     val carbonTablePath = CarbonStorePath.getCarbonTablePath(model.hdfsLocation,
-      new CarbonTableIdentifier(model.table.getDatabaseName, model.table.getTableName))
+      new CarbonTableIdentifier(model.table.getDatabaseName, model.table.getTableName,
+          model.table.getTableId))
     val schemaFilePath = carbonTablePath.getSchemaFilePath
 
     // read TableInfo

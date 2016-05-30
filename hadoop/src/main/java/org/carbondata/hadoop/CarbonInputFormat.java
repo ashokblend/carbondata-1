@@ -87,6 +87,7 @@ public class CarbonInputFormat<T> extends FileInputFormat<Void, T> {
 
   private static final String DATABASE_NAME = "mapreduce.input.carboninputformat.databasename";
   private static final String TABLE_NAME = "mapreduce.input.carboninputformat.tablename";
+  private static final String TABLE_ID = "mapreduce.input.carboninputformat.tableId";
   private static final String FILTER_PREDICATE =
       "mapreduce.input.carboninputformat.filter.predicate";
   private static final String COLUMN_PROJECTION = "mapreduce.input.carboninputformat.projection";
@@ -100,7 +101,7 @@ public class CarbonInputFormat<T> extends FileInputFormat<Void, T> {
       CarbonTableIdentifier tableIdentifier) {
     configuration.set(CarbonInputFormat.DATABASE_NAME, tableIdentifier.getDatabaseName());
     configuration.set(CarbonInputFormat.TABLE_NAME, tableIdentifier.getTableName());
-    job.getConfiguration().setInt(CarbonInputFormat.TABLE_ID, tableIdentifier.getTableId());
+    configuration.setInt(CarbonInputFormat.TABLE_ID, tableIdentifier.getTableId());
   }
 
   /**
@@ -126,7 +127,7 @@ public class CarbonInputFormat<T> extends FileInputFormat<Void, T> {
   public static CarbonTableIdentifier getTableToAccess(Configuration configuration) {
     String databaseName = configuration.get(CarbonInputFormat.DATABASE_NAME);
     String tableName = configuration.get(CarbonInputFormat.TABLE_NAME);
-    int tableId = job.getConfiguration().getInt(CarbonInputFormat.TABLE_ID, -1);
+    int tableId = configuration.getInt(CarbonInputFormat.TABLE_ID, -1);
     if (databaseName != null && tableName != null) {
       return new CarbonTableIdentifier(databaseName, tableName, tableId);
     }

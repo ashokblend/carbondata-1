@@ -99,7 +99,7 @@ public class StoreCreator {
       String dbName = "testdb";
       String tableName = "testtable";
       absoluteTableIdentifier =
-          new AbsoluteTableIdentifier(storePath, new CarbonTableIdentifier(dbName, tableName));
+          new AbsoluteTableIdentifier(storePath, new CarbonTableIdentifier(dbName, tableName, 1));
     } catch (IOException ex) {
 
     }

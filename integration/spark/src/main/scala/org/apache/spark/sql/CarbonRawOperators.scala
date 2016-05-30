@@ -187,7 +187,7 @@ case class CarbonRawTableScan(
     val absoluteTableIdentifier =
       new AbsoluteTableIdentifier(carbonCatalog.storePath,
         new CarbonTableIdentifier(carbonTable.getDatabaseName,
-          carbonTable.getFactTableName))
+          carbonTable.getFactTableName, carbonTable.getFactTableId))
     buildCarbonPlan.getDimAggregatorInfos.clear()
     val model = QueryModel.createModel(
       absoluteTableIdentifier, buildCarbonPlan, carbonTable)

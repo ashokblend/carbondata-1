@@ -180,7 +180,8 @@ public class QueryModel implements Serializable {
       QueryModel queryModel, String factTableName) {
     AbsoluteTableIdentifier currentTemp = queryModel.getAbsoluteTableIdentifier();
     queryModel.setAbsoluteTableIdentifier(new AbsoluteTableIdentifier(currentTemp.getStorePath(),
-        new CarbonTableIdentifier(queryPlan.getSchemaName(), factTableName)));
+        new CarbonTableIdentifier(queryPlan.getSchemaName(), factTableName,
+            carbonTable.getFactTableId())));
     queryModel.setQueryDimension(queryPlan.getDimensions());
     fillSortInfoInModel(queryModel, queryPlan.getSortedDimemsions());
     queryModel.setQueryMeasures(
