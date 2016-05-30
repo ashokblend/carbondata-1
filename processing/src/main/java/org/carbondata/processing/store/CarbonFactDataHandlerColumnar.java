@@ -988,10 +988,11 @@ public class CarbonFactDataHandlerColumnar implements CarbonFactHandler {
     int[] blockKeySize = getBlockKeySizeWithComplexTypes(new MultiDimKeyVarLengthEquiSplitGenerator(
         CarbonUtil.getIncrementedCardinalityFullyFilled(completeDimLens.clone()), (byte) dimSet)
         .getBlockKeySize());
-    int [] keyBlockSize = new int[dimensionType.length + complexColCount];
-    System.arraycopy(columnarSplitter.getBlockKeySize(), 0, keyBlockSize, 0, dimensionType.length);
-    System.arraycopy(blockKeySize, dimensionType.length, keyBlockSize, dimensionType.length,
-        blockKeySize.length - dimensionType.length);
+    int noOfColStore = colGrpModel.getNoOfColumnStore();
+    int [] keyBlockSize = new int[noOfColStore + complexColCount];
+    System.arraycopy(columnarSplitter.getBlockKeySize(), 0, keyBlockSize, 0, noOfColStore);
+    System.arraycopy(blockKeySize, noOfColStore, keyBlockSize, noOfColStore,
+        blockKeySize.length - noOfColStore);
     this.dataWriter =
         getFactDataWriter(this.storeLocation, this.measureCount, this.mdkeyLength, this.tableName,
             fileManager, keyBlockSize);

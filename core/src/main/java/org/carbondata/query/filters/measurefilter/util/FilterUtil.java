@@ -68,6 +68,7 @@ import org.carbondata.query.expression.Expression;
 import org.carbondata.query.expression.ExpressionResult;
 import org.carbondata.query.expression.exception.FilterUnsupportedException;
 import org.carbondata.query.filter.executer.AndFilterExecuterImpl;
+import org.carbondata.query.filter.executer.ColGroupFilterExecuterImpl;
 import org.carbondata.query.filter.executer.ExcludeFilterExecuterImpl;
 import org.carbondata.query.filter.executer.FilterExecuter;
 import org.carbondata.query.filter.executer.IncludeFilterExecuterImpl;
