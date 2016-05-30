@@ -230,6 +230,7 @@ public class CarbonFactDataWriterImplForIntIndexAndAggBlock extends AbstractFact
     holder.setColumnMaxData(allMaxValue);
     holder.setColumnMinData(allMinValue);
     holder.setAggBlocks(aggBlocks);
+    holder.setColGrpBlocks(colGrpBlock);
     return holder;
   }
 
