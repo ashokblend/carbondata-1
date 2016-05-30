@@ -114,7 +114,7 @@ public class CompressedDimensionChunkFileBasedReader extends AbstractChunkReader
     chunkAttributes.setInvertedIndexesReverse(invertedIndexesReverse);
     DimensionColumnDataChunk columnDataChunk = null;
 
-    if (dimensionColumnChunk.get(blockIndex).isRowChunk()) {
+    if (dimensionColumnChunk.get(blockIndex).isRowMajor()) {
       // to store fixed length column chunk values
       columnDataChunk = new ColumnGroupDimensionDataChunk(dataPage, chunkAttributes);
     }

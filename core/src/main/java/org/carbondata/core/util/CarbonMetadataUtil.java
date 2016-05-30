@@ -113,8 +113,7 @@ public class CarbonMetadataUtil {
       if (columnSchenma.get(i).encoders.contains(Encoding.DIRECT_DICTIONARY)) {
         encodings.add(Encoding.DIRECT_DICTIONARY);
       }
-      //TODO : Need to find how to set it.
-      dataChunk.setRow_chunk(colGrpblock[i]);
+      dataChunk.setRowMajor(colGrpblock[i]);
       //TODO : Once schema PR is merged and information needs to be passed here.
       dataChunk.setColumn_ids(new ArrayList<Integer>());
       dataChunk.setData_page_length(blockletInfoColumnar.getKeyLengths()[i]);
@@ -144,7 +143,7 @@ public class CarbonMetadataUtil {
     for (int i = 0; i < blockletInfoColumnar.getMeasureLength().length; i++) {
       DataChunk dataChunk = new DataChunk();
       dataChunk.setChunk_meta(getChunkCompressionMeta());
-      dataChunk.setRow_chunk(false);
+      dataChunk.setRowMajor(false);
       //TODO : Once schema PR is merged and information needs to be passed here.
       dataChunk.setColumn_ids(new ArrayList<Integer>());
       dataChunk.setData_page_length(blockletInfoColumnar.getMeasureLength()[i]);

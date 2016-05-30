@@ -22,19 +22,27 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import org.carbondata.common.logging.LogService;
+import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.core.carbon.datastore.block.SegmentProperties;
 import org.carbondata.core.carbon.datastore.chunk.DimensionColumnDataChunk;
 import org.carbondata.core.keygenerator.KeyGenException;
 import org.carbondata.core.util.ByteUtil;
 import org.carbondata.query.carbon.executor.infos.KeyStructureInfo;
 import org.carbondata.query.carbon.executor.util.QueryUtil;
-import org.carbondata.query.evaluators.DimColumnResolvedFilterInfo;
+import org.carbondata.query.filter.resolver.resolverinfo.DimColumnResolvedFilterInfo;
 
 /**
  * It checks if filter is required on given block and if required, it does
  * linear search on block data and set the bitset.
  */
 public class ColGroupFilterExecuterImpl extends IncludeFilterExecuterImpl {
+
+  /**
+   * LOGGER
+   */
+  private static final LogService LOGGER =
+      LogServiceFactory.getLogService(ColGroupFilterExecuterImpl.class.getName());
 
   /**
    * @param dimColResolvedFilterInfo
@@ -67,7 +75,7 @@ public class ColGroupFilterExecuterImpl extends IncludeFilterExecuterImpl {
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error(e);
     }
 
     return bitSet;
