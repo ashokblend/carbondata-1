@@ -938,7 +938,6 @@ public class CarbonFactDataHandlerColumnar implements CarbonFactHandler {
     int dimSet =
         Integer.parseInt(CarbonCommonConstants.DIMENSION_SPLIT_VALUE_IN_COLUMNAR_DEFAULTVALUE);
     // if atleast one dimension is present then initialize column splitter otherwise null
-
     if (dimLens.length > 0) {
       //Using Variable length variable split generator
       //This will help in splitting mdkey to columns. variable split is required because all
@@ -989,9 +988,13 @@ public class CarbonFactDataHandlerColumnar implements CarbonFactHandler {
     int[] blockKeySize = getBlockKeySizeWithComplexTypes(new MultiDimKeyVarLengthEquiSplitGenerator(
         CarbonUtil.getIncrementedCardinalityFullyFilled(completeDimLens.clone()), (byte) dimSet)
         .getBlockKeySize());
+    int [] keyBlockSize = new int[dimensionType.length + complexColCount];
+    System.arraycopy(columnarSplitter.getBlockKeySize(), 0, keyBlockSize, 0, dimensionType.length);
+    System.arraycopy(blockKeySize, dimensionType.length, keyBlockSize, dimensionType.length,
+        blockKeySize.length - dimensionType.length);
     this.dataWriter =
         getFactDataWriter(this.storeLocation, this.measureCount, this.mdkeyLength, this.tableName,
-            fileManager, blockKeySize);
+            fileManager, keyBlockSize);
     this.dataWriter.setIsNoDictionary(isNoDictionary);
     // initialize the channel;
     this.dataWriter.initializeWriter();

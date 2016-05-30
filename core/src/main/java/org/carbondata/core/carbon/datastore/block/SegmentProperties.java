@@ -158,6 +158,7 @@ public class SegmentProperties {
   /**
    * it fills column groups
    * e.g {{1},{2,3,4},{5},{6},{7,8,9}}
+   *
    * @param columnsInTable
    */
   private void intialiseColGroups(List<ColumnSchema> columnsInTable) {
@@ -178,6 +179,8 @@ public class SegmentProperties {
           colGrpList.add(group);
           group = new ArrayList<Integer>();
         }
+      } else {
+        colGrpList.add(group);
       }
 
     }
