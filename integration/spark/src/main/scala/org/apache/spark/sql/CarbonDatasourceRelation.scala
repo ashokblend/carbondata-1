@@ -30,10 +30,10 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.hive.{CarbonMetaData, CarbonMetastoreTypes, TableMeta}
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataType, StructType}
-import org.apache.spark.util.FileUtils
 
 import org.carbondata.core.carbon.metadata.schema.table.column.CarbonDimension
 import org.carbondata.core.constants.CarbonCommonConstants
+import org.carbondata.core.datastorage.store.impl.FileFactory
 import org.carbondata.spark.{CarbonOption, _}
 
 /**
@@ -136,12 +136,12 @@ private[sql] case class CarbonDatasourceRelation(
   def sqlContext: SQLContext = context
 
   override val sizeInBytes: Long = {
-     val tablePath = carbonRelation.cubeMeta.dataPath + CarbonCommonConstants.FILE_SEPARATOR +
-     carbonRelation.cubeMeta.carbonTableIdentifier.getDatabaseName +
-     CarbonCommonConstants.FILE_SEPARATOR +
-     carbonRelation.cubeMeta.carbonTableIdentifier.getTableName
-    FileUtils.getSpaceOccupied(tablePath)
-   }
+    val tablePath = carbonRelation.cubeMeta.dataPath + CarbonCommonConstants.FILE_SEPARATOR +
+                    carbonRelation.cubeMeta.carbonTableIdentifier.getDatabaseName +
+                    CarbonCommonConstants.FILE_SEPARATOR +
+                    carbonRelation.cubeMeta.carbonTableIdentifier.getTableName
+    FileFactory.getDirectorySize(tablePath)
+  }
 }
 
 /**
