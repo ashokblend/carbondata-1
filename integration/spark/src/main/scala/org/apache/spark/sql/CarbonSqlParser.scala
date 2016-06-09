@@ -527,7 +527,7 @@ class CarbonSqlParser()
     var colGrpFieldIndx: Seq[Int] = Seq[Int]()
     colGroup.split(',').map(_.trim).foreach { x =>
       dims.zipWithIndex.foreach { dim =>
-        if (dim._1.column.equals(x)) {
+        if (dim._1.column.equalsIgnoreCase(x)) {
           colGrpFieldIndx :+= dim._2
         }
       }
@@ -542,7 +542,7 @@ class CarbonSqlParser()
       for (i <- 0 until (colGrpFieldIndx.length - 1)) {
         if ((colGrpFieldIndx(i + 1) - colGrpFieldIndx(i)) != 1) {
           throw new MalformedCarbonCommandException(
-            "Invalid column group,column group column should be in sequence.")
+            "Invalid column group,column in group should be contiguous as per schema.")
         }
       }
       true
