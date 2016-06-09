@@ -101,7 +101,7 @@ public class CarbonTableTest extends TestCase {
     columnSchemaList.add(getColumnarDimensionColumn());
     columnSchemaList.add(getColumnarMeasureColumn());
     tableSchema.setListOfColumns(columnSchemaList);
-    tableSchema.setTableId(1);
+    tableSchema.setTableId(UUID.randomUUID().toString());
     tableSchema.setTableName("carbonTestTable");
     return tableSchema;
   }

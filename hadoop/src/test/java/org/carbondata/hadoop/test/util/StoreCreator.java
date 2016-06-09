@@ -99,7 +99,7 @@ public class StoreCreator {
       String dbName = "testdb";
       String tableName = "testtable";
       absoluteTableIdentifier =
-          new AbsoluteTableIdentifier(storePath, new CarbonTableIdentifier(dbName, tableName));
+          new AbsoluteTableIdentifier(storePath, new CarbonTableIdentifier(dbName, tableName, UUID.randomUUID().toString()));
     } catch (IOException ex) {
 
     }
@@ -226,7 +226,7 @@ public class StoreCreator {
     SchemaEvolution schemaEvol = new SchemaEvolution();
     schemaEvol.setSchemaEvolutionEntryList(new ArrayList<SchemaEvolutionEntry>());
     tableSchema.setSchemaEvalution(schemaEvol);
-    tableSchema.setTableId(1);
+    tableSchema.setTableId(UUID.randomUUID().toString());
     tableInfo.setTableUniqueName(
         absoluteTableIdentifier.getCarbonTableIdentifier().getDatabaseName() + "_"
             + absoluteTableIdentifier.getCarbonTableIdentifier().getTableName());
