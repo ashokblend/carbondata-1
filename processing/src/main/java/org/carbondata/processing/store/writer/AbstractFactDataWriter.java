@@ -165,7 +165,7 @@ public abstract class AbstractFactDataWriter<T> implements CarbonFactDataWriter<
   private FileOutputStream fileOutputStream;
 
   public AbstractFactDataWriter(String storeLocation, int measureCount, int mdKeyLength,
-      String tableName, IFileManagerComposite fileManager, int[] keyBlockSize,
+      String databaseName, String tableName, IFileManagerComposite fileManager, int[] keyBlockSize,
       CarbonDataFileAttributes carbonDataFileAttributes, List<ColumnSchema> columnSchema,
       String carbonDataDirectoryPath, int[] colCardinality) {
 
@@ -173,6 +173,7 @@ public abstract class AbstractFactDataWriter<T> implements CarbonFactDataWriter<
     this.measureCount = measureCount;
     // table name
     this.tableName = tableName;
+    this.databaseName = databaseName;
 
     this.storeLocation = storeLocation;
     this.blockletInfoList =

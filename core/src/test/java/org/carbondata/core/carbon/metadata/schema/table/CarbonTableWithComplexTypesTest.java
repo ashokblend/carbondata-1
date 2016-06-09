@@ -152,6 +152,7 @@ public class CarbonTableWithComplexTypesTest extends TestCase {
     info.setLastUpdatedTime(timeStamp);
     info.setTableUniqueName("carbonTestDatabase_carbonTestTable");
     info.setFactTable(getTableSchema());
+    info.setStorePath("testStore");
     return info;
   }
 

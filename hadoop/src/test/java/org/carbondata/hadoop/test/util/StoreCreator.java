@@ -146,6 +146,7 @@ public class StoreCreator {
 
   private static CarbonTable createTable() throws IOException {
     TableInfo tableInfo = new TableInfo();
+    tableInfo.setStorePath(absoluteTableIdentifier.getStorePath());
     tableInfo.setDatabaseName(absoluteTableIdentifier.getCarbonTableIdentifier().getDatabaseName());
     TableSchema tableSchema = new TableSchema();
     tableSchema.setTableName(absoluteTableIdentifier.getCarbonTableIdentifier().getTableName());
@@ -393,7 +394,7 @@ public class StoreCreator {
     }
     if (folder.isDirectory()) {
       File[] files = folder.listFiles();
-      for (int i = 0; i < file.length(); i++) {
+      for (int i = 0; i < files.length; i++) {
         if (!files[i].isDirectory() && files[i].getName().startsWith("part")) {
           factFile = files[i];
           break;
