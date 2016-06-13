@@ -719,6 +719,8 @@ public final class CarbonCommonConstants {
   public static final String CARBON_MERGE_SORT_PREFETCH = "carbon.merge.sort.prefetch";
   public static final String CARBON_MERGE_SORT_PREFETCH_DEFAULT = "true";
 
+  public static final String COLUMN_PROPERTIES = "columnproperties";
+
   /**
    * this variable is to enable/disable identify high cardinality during first data loading
    */

@@ -20,6 +20,7 @@ package org.carbondata.core.carbon.metadata.schema.table.column;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import org.carbondata.core.carbon.metadata.datatype.DataType;
 import org.carbondata.core.carbon.metadata.encoder.Encoding;
@@ -98,6 +99,11 @@ public class ColumnSchema implements Serializable {
    * used in case of schema restructuring
    */
   private byte[] defaultValue;
+
+  /**
+   * Column properties
+   */
+  private Map<String, String> columnProperties;
 
   /**
    * used to define the column visibility of column default is false
@@ -331,6 +337,30 @@ public class ColumnSchema implements Serializable {
     }
   }
 
+  /**
+   * @param columnProperties
+   */
+  public void setColumnProperties(Map<String, String> columnProperties) {
+    this.columnProperties = columnProperties;
+  }
+
+  /**
+   * @param property
+   * @return
+   */
+  public String getColumnProperty(String property) {
+    if (null != columnProperties) {
+      return columnProperties.get(property);
+    }
+    return null;
+  }
+
+  /**
+   * return columnproperties
+   */
+  public Map<String, String> getColumnProperties() {
+    return columnProperties;
+  }
   /**
    * return the visibility
    * @return

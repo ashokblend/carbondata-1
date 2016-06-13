@@ -6,6 +6,7 @@ import org.carbondata.core.cache.CacheType;
 import org.carbondata.core.cache.dictionary.Dictionary;
 import org.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.carbondata.core.carbon.AbsoluteTableIdentifier;
+import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.carbon.metadata.datatype.DataType;
 import org.carbondata.core.carbon.metadata.encoder.Encoding;
 import org.carbondata.core.carbon.metadata.schema.table.column.CarbonColumn;
@@ -46,9 +47,10 @@ public abstract class AbstractDictionaryDecodedReadSupport<T> implements CarbonR
             .createCache(CacheType.FORWARD_DICTIONARY, absoluteTableIdentifier.getStorePath());
         try {
           dataTypes[i] = carbonColumns[i].getDataType();
+          ColumnIdentifier columnIdentifier = new ColumnIdentifier(carbonColumns[i].getColumnId(),
+              carbonColumns[i].getColumnProperties());
           dictionaries[i] = forwardDictionaryCache.get(new DictionaryColumnUniqueIdentifier(
-              absoluteTableIdentifier.getCarbonTableIdentifier(), carbonColumns[i].getColumnId(),
-              dataTypes[i]));
+              absoluteTableIdentifier.getCarbonTableIdentifier(), columnIdentifier, dataTypes[i]));
         } catch (CarbonUtilException e) {
           throw new RuntimeException(e);
         }

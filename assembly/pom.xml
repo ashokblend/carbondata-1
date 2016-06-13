@@ -36,6 +36,11 @@
     <dev.path>${basedir}/../dev</dev.path>
   </properties>
   <dependencies>
+  <dependency>
+    <groupId>jdk.tools</groupId>
+    <artifactId>jdk.tools</artifactId>
+    <version>1.6</version>
+</dependency>
     <dependency>
       <groupId>org.carbondata</groupId>
       <artifactId>carbon-common</artifactId>

@@ -18,6 +18,7 @@
 package org.apache.spark.sql
 
 import java.nio.charset.Charset
+import java.util
 import java.util.regex.{Matcher, Pattern}
 
 import scala.collection.JavaConverters._
@@ -139,6 +140,7 @@ class CarbonSqlParser()
   protected val STARTTIME = Keyword("STARTTIME")
   protected val SEGMENTS = Keyword("SEGMENTS")
   protected val SEGMENT = Keyword("SEGMENT")
+  protected val SHARED = Keyword("SHARED")
 
   protected val doubleQuotedString = "\"([^\"]+)\"".r
   protected val singleQuotedString = "'([^']+)'".r
@@ -176,7 +178,8 @@ class CarbonSqlParser()
   }
 
   override protected lazy val start: Parser[LogicalPlan] =
-    createCube | showCreateCube | loadManagement | createAggregateTable | describeTable |
+     createCube | showCreateCube | loadManagement | createAggregateTable |
+      describeTable |
       showCube | showLoads | alterCube | showAllCubes | alterTable | createTable
 
   protected lazy val loadManagement: Parser[LogicalPlan] = loadData | dropCubeOrTable |
@@ -467,10 +470,14 @@ class CarbonSqlParser()
           sys.error("Not a carbon format request")
         }
 
-        // prepare table model of the collected tokens
-        val tableModel: tableModel = prepareTableModel(ifNotExistPresent, dbName, tableName, fields,
-          partitionCols,
-          tableProperties)
+      // validate tblProperties
+      if (!CommonUtil.validateTblProperties(tableProperties, fields)) {
+        throw new MalformedCarbonCommandException("Invalid table properties")
+      }
+      // prepare table model of the collected tokens
+      val tableModel: tableModel = prepareTableModel(ifNotExistPresent, dbName, tableName, fields,
+        partitionCols,
+        tableProperties)
 
         // get logical plan.
         CreateCube(tableModel)
@@ -538,6 +545,8 @@ class CarbonSqlParser()
       fields, tableProperties)
     val msrs: Seq[Field] = extractMsrColsFromFields(fields, tableProperties)
 
+    // column properties
+    val colProps = extractColumnProperties(fields, tableProperties)
     // get column groups configuration from table properties.
     val groupCols: Seq[String] = updateColumnGroupsInField(tableProperties,
         noDictionaryDims, msrs, dims)
@@ -548,7 +557,7 @@ class CarbonSqlParser()
       dbName.getOrElse("default"), dbName, tableName,
       reorderDimensions(dims.map(f => normalizeType(f)).map(f => addParent(f))),
       msrs.map(f => normalizeType(f)), "", null, "",
-      None, Seq(), null, Option(noDictionaryDims), null, partitioner, groupCols)
+      None, Seq(), null, Option(noDictionaryDims), null, partitioner, groupCols, Some(colProps))
   }
 
   /**
@@ -661,6 +670,54 @@ class CarbonSqlParser()
     None
   }
 
+  protected def extractColumnProperties(fields: Seq[Field], tableProperties: Map[String, String]):
+  util.Map[String, util.List[ColumnProperty]] = {
+    val colPropMap = new util.HashMap[String, util.List[ColumnProperty]]()
+    fields.foreach { field =>
+      if (field.children.isDefined && field.children.get != null) {
+        fillAllChildrenColumnProperty(field.column, field.children, tableProperties, colPropMap)
+      } else {
+        fillColumnProperty(None, field.column, tableProperties, colPropMap)
+      }
+    }
+    colPropMap
+  }
+
+  protected def fillAllChildrenColumnProperty(parent: String, fieldChildren: Option[List[Field]],
+    tableProperties: Map[String, String],
+    colPropMap: util.HashMap[String, util.List[ColumnProperty]]) {
+    fieldChildren.foreach(fields => {
+      fields.foreach(field => {
+        fillColumnProperty(Some(parent), field.column, tableProperties, colPropMap)
+      }
+      )
+    }
+    )
+  }
+
+  protected def fillColumnProperty(parentColumnName: Option[String],
+    columnName: String,
+    tableProperties: Map[String, String],
+    colPropMap: util.HashMap[String, util.List[ColumnProperty]]) {
+    val (tblPropKey, colProKey) = getKey(parentColumnName, columnName)
+    val colProps = CommonUtil.getColumnProperties(tblPropKey, tableProperties)
+    if (None != colProps) {
+      colPropMap.put(colProKey, colProps.get)
+    }
+  }
+
+  def getKey(parentColumnName: Option[String],
+    columnName: String): (String, String) = {
+    if (None != parentColumnName) {
+      if (columnName == "val") {
+        (parentColumnName.get, parentColumnName.get + "." + columnName)
+      } else {
+        (parentColumnName.get + "." + columnName, parentColumnName.get + "." + columnName)
+      }
+    } else {
+      (columnName, columnName)
+    }
+  }
   /**
    * This will extract the Dimensions and NoDictionary Dimensions fields.
    * By default all string cols are dimensions.
@@ -1259,7 +1316,6 @@ class CarbonSqlParser()
           new DescribeCommand(UnresolvedRelation(tblIdentifier, None), ef.isDefined)
         }
     }
-
   private def normalizeType(field: Field): Field = {
     field.dataType.getOrElse("NIL") match {
       case "string" => Field(field.column, Some("String"), field.name, Some(null), field.parent,

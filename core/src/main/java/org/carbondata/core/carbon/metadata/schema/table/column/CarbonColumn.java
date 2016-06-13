@@ -21,6 +21,7 @@ package org.carbondata.core.carbon.metadata.schema.table.column;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import org.carbondata.core.carbon.metadata.datatype.DataType;
 import org.carbondata.core.carbon.metadata.encoder.Encoding;
@@ -141,5 +142,12 @@ public class CarbonColumn implements Serializable {
 
   public ColumnSchema getColumnSchema() {
     return this.columnSchema;
+  }
+
+  /**
+   * @return columnproperty
+   */
+  public Map<String, String> getColumnProperties() {
+    return this.columnSchema.getColumnProperties();
   }
 }

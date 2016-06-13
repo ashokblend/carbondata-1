@@ -17,39 +17,61 @@
 
 package org.carbondata.examples
 
-import org.carbondata.core.constants.CarbonCommonConstants
+import java.io.File
+import scala.io.Source
+import org.apache.hadoop.hive.conf.HiveConf
 import org.carbondata.core.util.CarbonProperties
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.CarbonContext
+
 import org.carbondata.examples.util.InitForExamples
 
 object CarbonExample {
   def main(args: Array[String]) {
-    val cc = InitForExamples.createCarbonContext("CarbonExample")
-    val testData = InitForExamples.currentPath + "/src/main/resources/data.csv"
+       val file: File = new File(args(0))
+    val basePath: String = file.getParentFile.getAbsolutePath
 
-    // Specify timestamp format based on raw data
-    CarbonProperties.getInstance()
-      .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy/mm/dd")
+    // get current directory:/examples
+    val currentDirectory = new File(this.getClass.getResource("/").getPath + "/../../")
+      .getCanonicalPath
 
-    cc.sql("DROP TABLE IF EXISTS t3")
+    // specify parameters
+    val storeLocation = basePath + "/store"
+     def currentPath: String = new File(this.getClass.getResource("/").getPath + "/../../")
+    .getCanonicalPath
+     val hiveMetaPath = storeLocation + "/hivemetadata"
 
-    cc.sql("""
-           CREATE TABLE IF NOT EXISTS t3
-           (ID Int, date Timestamp, country String,
-           name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
-           """)
+    val kettleHome = new File(currentPath + "/../processing/carbonplugins").getCanonicalPath
+ 
+   val sc = new SparkContext(new SparkConf()
+      .setAppName("CarbonExample")
+      .setMaster("local[2]"))
+    sc.setLogLevel("ERROR")
 
-    cc.sql(s"""
-           LOAD DATA LOCAL INPATH '$testData' into table t3
-           """)
+    val cc = new CarbonContext(sc, storeLocation)
+    cc.setConf("javax.jdo.option.ConnectionURL","jdbc:derby:;databaseName="+storeLocation+"/metastore_db;create=true")
+    cc.setConf("carbon.kettle.home", kettleHome)
+    cc.setConf("hive.metastore.warehouse.dir", hiveMetaPath)
+    cc.setConf(HiveConf.ConfVars.HIVECHECKFILEFORMAT.varname, "false")
 
-    cc.sql("""
-           SELECT country, count(salary) AS amount
-           FROM t3
-           WHERE country IN ('china','france')
-           GROUP BY country
-           """).show()
+    // whether use table split partition
+    // true -> use table split partition, support multiple partition loading
+    // false -> use node split partition, support data load by host partition
+    CarbonProperties.getInstance().addProperty("carbon.table.split.partition.enable", "false")
 
-    cc.sql("DROP TABLE IF EXISTS t3")
+   
+    Source.fromFile(basePath + File.separator + "test.sql").getLines()
+      .foreach { x => processCommand(x, cc) }
+
+  }
+
+  def processCommand(cmd: String, cc: CarbonContext): Unit = {
+    // scalastyle:off
+    if (!cmd.startsWith("#")) {
+      println(s"executing>>>>>>$cmd")
+      val result = cc.sql(cmd)
+      result.show(100)
+      println(s"executed>>>>>>$cmd")
+    }
   }
 }

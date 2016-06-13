@@ -39,6 +39,7 @@ import org.carbondata.core.cache.dictionary.Dictionary;
 import org.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.carbondata.core.carbon.AbsoluteTableIdentifier;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.carbon.datastore.block.SegmentProperties;
 import org.carbondata.core.carbon.metadata.CarbonMetadata;
 import org.carbondata.core.carbon.metadata.encoder.Encoding;
@@ -357,9 +358,11 @@ public class QueryUtil {
         CarbonMetadata.getInstance().getCarbonTable(carbonTableIdentifier.getTableUniqueName());
     List<DictionaryColumnUniqueIdentifier> dictionaryColumnUniqueIdentifiers =
         new ArrayList<>(dictionaryColumnIdList.size());
-    for (String columnIdentifier : dictionaryColumnIdList) {
+    for (String columnId : dictionaryColumnIdList) {
       CarbonDimension dimension = CarbonMetadata.getInstance()
-          .getCarbonDimensionBasedOnColIdentifier(carbonTable, columnIdentifier);
+          .getCarbonDimensionBasedOnColIdentifier(carbonTable, columnId);
+      ColumnIdentifier columnIdentifier =
+          new ColumnIdentifier(columnId, dimension.getColumnProperties());
       if (null == dimension) {
         throw new QueryExecutionException(
             "The column id " + columnIdentifier + " could not be resolved.");

@@ -1,4 +1,4 @@
-package org.carbondata.spark.testsuite.validation;
+package org.carbondata.integration.spark.testsuite.validation;
 
 import org.apache.spark.sql.common.util.CarbonHiveContext;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
@@ -15,10 +15,10 @@ import org.carbondata.format.BlockletInfo;
 import org.carbondata.format.DataChunk;
 import org.carbondata.format.Encoding;
 import org.carbondata.format.FileFooter;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertTrue;
 
 public class FileFooterValidator {

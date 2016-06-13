@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.carbondata.core.carbon.CarbonTableIdentifier;
+import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.datastorage.store.filesystem.CarbonFile;
 import org.carbondata.core.datastorage.store.impl.FileFactory;
 import org.carbondata.core.reader.sortindex.CarbonDictionarySortIndexReader;
@@ -58,9 +59,10 @@ public class CarbonDictionarySortIndexWriterImplTest {
    */
   @Test public void write() throws Exception {
     String storePath = hdfsStorePath;
+    ColumnIdentifier columnIdentifier = new ColumnIdentifier("Name", null);
     CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon", UUID.randomUUID().toString());
     CarbonDictionarySortIndexWriter dictionarySortIndexWriter =
-        new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, "Name", storePath);
+        new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, columnIdentifier, storePath);
     List<int[]> indexList = prepareExpectedData();
     List<Integer> sortIndex = Arrays.asList(ArrayUtils.toObject(indexList.get(0)));
     List<Integer> invertedSortIndex = Arrays.asList(ArrayUtils.toObject(indexList.get(1)));
@@ -68,7 +70,7 @@ public class CarbonDictionarySortIndexWriterImplTest {
     dictionarySortIndexWriter.writeInvertedSortIndex(invertedSortIndex);
     dictionarySortIndexWriter.close();
     CarbonDictionarySortIndexReader carbonDictionarySortIndexReader =
-        new CarbonDictionarySortIndexReaderImpl(carbonTableIdentifier, "Name", storePath);
+        new CarbonDictionarySortIndexReaderImpl(carbonTableIdentifier, columnIdentifier, storePath);
     List<Integer> actualSortIndex = carbonDictionarySortIndexReader.readSortIndex();
     List<Integer> actualInvertedSortIndex = carbonDictionarySortIndexReader.readInvertedSortIndex();
     for (int i = 0; i < actualSortIndex.size(); i++) {
@@ -83,16 +85,17 @@ public class CarbonDictionarySortIndexWriterImplTest {
    */
   @Test public void writingEmptyValue() throws Exception {
     String storePath = hdfsStorePath;
+    ColumnIdentifier columnIdentifier = new ColumnIdentifier("Name", null);
     CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon", UUID.randomUUID().toString());
     CarbonDictionarySortIndexWriter dictionarySortIndexWriter =
-        new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, "Name", storePath);
+        new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, columnIdentifier, storePath);
     List<Integer> sortIndex = new ArrayList<>();
     List<Integer> invertedSortIndex = new ArrayList<>();
     dictionarySortIndexWriter.writeSortIndex(sortIndex);
     dictionarySortIndexWriter.writeInvertedSortIndex(invertedSortIndex);
     dictionarySortIndexWriter.close();
     CarbonDictionarySortIndexReader carbonDictionarySortIndexReader =
-        new CarbonDictionarySortIndexReaderImpl(carbonTableIdentifier, "Name", storePath);
+        new CarbonDictionarySortIndexReaderImpl(carbonTableIdentifier, columnIdentifier, storePath);
     List<Integer> actualSortIndex = carbonDictionarySortIndexReader.readSortIndex();
     List<Integer> actualInvertedSortIndex = carbonDictionarySortIndexReader.readInvertedSortIndex();
     for (int i = 0; i < actualSortIndex.size(); i++) {

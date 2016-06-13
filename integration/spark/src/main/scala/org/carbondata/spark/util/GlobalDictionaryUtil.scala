@@ -33,9 +33,11 @@ import org.apache.spark.sql.{CarbonEnv, CarbonRelation, DataFrame, SQLContext}
 import org.apache.spark.sql.hive.CarbonMetastoreCatalog
 import org.apache.spark.util.FileUtils
 
+import org.carbondata.common.factory.CarbonCommonFactory
 import org.carbondata.core.cache.dictionary.Dictionary
 import org.carbondata.core.carbon.CarbonDataLoadSchema
 import org.carbondata.core.carbon.CarbonTableIdentifier
+import org.carbondata.core.carbon.ColumnIdentifier
 import org.carbondata.core.carbon.metadata.datatype.DataType
 import org.carbondata.core.carbon.metadata.encoder.Encoding
 import org.carbondata.core.carbon.metadata.schema.table.column.CarbonDimension
@@ -137,9 +139,12 @@ object GlobalDictionaryUtil extends Logging {
   def writeGlobalDictionaryToFile(model: DictionaryLoadModel,
       columnIndex: Int,
       iter: Iterator[String]): Unit = {
-    val writer: CarbonDictionaryWriter = new CarbonDictionaryWriterImpl(
-      model.hdfsLocation, model.table,
-      model.primDimensions(columnIndex).getColumnId)
+    val dictService = CarbonCommonFactory.getDictionaryService
+    val writer: CarbonDictionaryWriter = dictService.getDictionaryWriter(
+      model.table,
+      model.columnIdentifier(columnIndex),
+      model.hdfsLocation
+    )
     try {
       while (iter.hasNext) {
         writer.write(iter.next)
@@ -158,12 +163,13 @@ object GlobalDictionaryUtil extends Logging {
       index: Int,
       dictionary: Dictionary): Unit = {
     val preparator: CarbonDictionarySortInfoPreparator = new CarbonDictionarySortInfoPreparator
+    val dictService = CarbonCommonFactory.getDictionaryService
     val dictionarySortInfo: CarbonDictionarySortInfo =
       preparator.getDictionarySortInfo(dictionary,
         model.primDimensions(index).getDataType)
     val carbonDictionaryWriter: CarbonDictionarySortIndexWriter =
-      new CarbonDictionarySortIndexWriterImpl(model.table,
-        model.primDimensions(index).getColumnId, model.hdfsLocation)
+      dictService.getDictionarySortIndexWriter(model.table, model.columnIdentifier(index),
+          model.hdfsLocation)
     try {
       carbonDictionaryWriter.writeSortIndex(dictionarySortInfo.getSortIndex)
       carbonDictionaryWriter.writeInvertedSortIndex(dictionarySortInfo.getSortIndexInverted)
@@ -178,8 +184,9 @@ object GlobalDictionaryUtil extends Logging {
   def readGlobalDictionaryFromCache(model: DictionaryLoadModel): HashMap[String, Dictionary] = {
     val dictMap = new HashMap[String, Dictionary]
     model.primDimensions.zipWithIndex.filter(f => model.dictFileExists(f._2)).foreach { m =>
+      val columnIdentifier = new ColumnIdentifier(m._1.getColumnId, m._1.getColumnProperties)
       val dict = CarbonLoaderUtil.getDictionary(model.table,
-        m._1.getColumnId, model.hdfsLocation,
+        columnIdentifier, model.hdfsLocation,
         m._1.getDataType
       )
       dictMap.put(m._1.getColumnId, dict)
@@ -192,11 +199,13 @@ object GlobalDictionaryUtil extends Logging {
    */
   def readGlobalDictionaryFromFile(model: DictionaryLoadModel): HashMap[String, HashSet[String]] = {
     val dictMap = new HashMap[String, HashSet[String]]
+    val dictService = CarbonCommonFactory.getDictionaryService
     for (i <- model.primDimensions.indices) {
       val set = new HashSet[String]
       if (model.dictFileExists(i)) {
-        val reader: CarbonDictionaryReader = new CarbonDictionaryReaderImpl(
-          model.hdfsLocation, model.table, model.primDimensions(i).getColumnId)
+        val reader: CarbonDictionaryReader = dictService.getDictionaryReader(model.table,
+          model.columnIdentifier(i), model.hdfsLocation
+        )
         val values = reader.read
         if (values != null) {
           for (j <- 0 until values.size) {
@@ -296,7 +305,8 @@ object GlobalDictionaryUtil extends Logging {
     val primDimensions = primDimensionsBuffer.map { x => x }.toArray
     val dictFilePaths = new Array[String](primDimensions.length)
     val dictFileExists = new Array[Boolean](primDimensions.length)
-    val carbonTablePath = CarbonStorePath.getCarbonTablePath(hdfsLocation, table)
+    val columnIdentifier = new Array[ColumnIdentifier](primDimensions.length)
+    val pathService = CarbonCommonFactory.getPathService
     val fileType = FileFactory.getFileType(dictfolderPath)
     // Metadata folder
     val metadataDirectory = FileFactory.getCarbonFile(dictfolderPath, fileType)
@@ -317,6 +327,8 @@ object GlobalDictionaryUtil extends Logging {
         }
         // 3 lookup fileNamesMap, if file name is in fileNamesMap, file is exists, or not.
         primDimensions.zipWithIndex.foreach { f =>
+          val carbonTablePath = pathService.getCarbonTablePath(columnIdentifier(f._2),
+              hdfsLocation, table)
           dictFilePaths(f._2) = carbonTablePath.getDictionaryFilePath(f._1.getColumnId)
           dictFileExists(f._2) =
             fileNamesMap.get(CarbonTablePath.getDictionaryFileName(f._1.getColumnId)) match {
@@ -334,6 +346,8 @@ object GlobalDictionaryUtil extends Logging {
             throw new IOException(s"Failed to created dictionary folder: ${dictfolderPath}")
         }
         primDimensions.zipWithIndex.foreach { f =>
+          val carbonTablePath = pathService.getCarbonTablePath(columnIdentifier(f._2),
+              hdfsLocation, table)
           dictFilePaths(f._2) = carbonTablePath.getDictionaryFilePath(f._1.getColumnId)
           // all dictionary files are not exists
           dictFileExists(f._2) = false
@@ -367,6 +381,7 @@ object GlobalDictionaryUtil extends Logging {
       highCardIdentifyEnable,
       highCardThreshold,
       rowCountPercentage,
+      columnIdentifier,
       carbonLoadModel.getLoadMetadataDetails.size() == 0)
   }
 
@@ -552,9 +567,11 @@ object GlobalDictionaryUtil extends Logging {
     val values = valuesBuffer.toArray
     java.util.Arrays.sort(values, Ordering[String])
     var distinctValueCount: Int = 0
-    val writer: CarbonDictionaryWriter = new CarbonDictionaryWriterImpl(
-      model.hdfsLocation, model.table,
-      model.primDimensions(columnIndex).getColumnId)
+    val dictService = CarbonCommonFactory.getDictionaryService
+    val writer: CarbonDictionaryWriter = dictService.getDictionaryWriter(
+        model.table,
+        model.columnIdentifier(columnIndex),
+        model.hdfsLocation)
     try {
       if (!model.dictFileExists(columnIndex)) {
         writer.write(CarbonCommonConstants.MEMBER_DEFAULT_VAL)
