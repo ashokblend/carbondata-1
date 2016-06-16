@@ -290,7 +290,7 @@ public class StoreCreator {
     Cache dictCache = CacheProvider.getInstance()
         .createCache(CacheType.REVERSE_DICTIONARY, absoluteTableIdentifier.getStorePath());
     for (int i = 0; i < set.length; i++) {
-      ColumnIdentifier columnIdentifier = new ColumnIdentifier(dims.get(i).getColumnId(), null);
+      ColumnIdentifier columnIdentifier = new ColumnIdentifier(dims.get(i).getColumnId(), null, null);
       CarbonDictionaryWriter writer =
           new CarbonDictionaryWriterImpl(absoluteTableIdentifier.getStorePath(),
               absoluteTableIdentifier.getCarbonTableIdentifier(), columnIdentifier);

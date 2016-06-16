@@ -59,7 +59,7 @@ public class CarbonDictionarySortIndexReaderImplTest {
     deleteStorePath();
     CarbonTableIdentifier carbonTableIdentifier = new CarbonTableIdentifier("testSchema", "carbon",
     		UUID.randomUUID().toString());
-    ColumnIdentifier columnIdentifier = new ColumnIdentifier("Name", null);
+    ColumnIdentifier columnIdentifier = new ColumnIdentifier("Name", null, null);
     CarbonDictionarySortIndexWriter dictionarySortIndexWriter =
         new CarbonDictionarySortIndexWriterImpl(carbonTableIdentifier, columnIdentifier, hdfsStorePath);
     List<int[]> expectedData = prepareExpectedData();

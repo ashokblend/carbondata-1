@@ -55,6 +55,11 @@ public class ColumnSchema implements Serializable {
   private String columnUniqueId;
 
   /**
+   * column reference id
+   */
+  private String columnReferenceId;
+
+  /**
    * whether it is stored as columnar format or row format
    */
   private boolean isColumnar = true;
@@ -375,6 +380,20 @@ public class ColumnSchema implements Serializable {
    */
   public void setInvisible(boolean invisible) {
     this.invisible = invisible;
+  }
+
+  /**
+   * @return columnReferenceId
+   */
+  public String getColumnReferenceId() {
+    return columnReferenceId;
+  }
+
+  /**
+   * @param columnReferenceId
+   */
+  public void setColumnReferenceId(String columnReferenceId) {
+    this.columnReferenceId = columnReferenceId;
   }
 
 }

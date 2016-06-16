@@ -266,7 +266,7 @@ public class ReverseDictionaryCacheTest extends AbstractDictionaryCacheTest {
   }
   protected DictionaryColumnUniqueIdentifier createDictionaryColumnUniqueIdentifier(
 	      String columnId) {
-	    ColumnIdentifier columnIdentifier = new ColumnIdentifier(columnId, null);
+	    ColumnIdentifier columnIdentifier = new ColumnIdentifier(columnId, null, null);
 	    DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier =
 	        new DictionaryColumnUniqueIdentifier(carbonTableIdentifier, columnIdentifier);
 	    return dictionaryColumnUniqueIdentifier;

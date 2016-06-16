@@ -210,7 +210,7 @@ public class ForwardDictionaryCacheTest extends AbstractDictionaryCacheTest {
    * @throws IOException
    */
   private void writeSortIndexFile(List<String> data, String columnId) throws IOException {
-	ColumnIdentifier columnIdentifier = new ColumnIdentifier(columnId, null);
+	ColumnIdentifier columnIdentifier = new ColumnIdentifier(columnId, null, null);
     Map<String, Integer> dataToSurrogateKeyMap = new HashMap<>(data.size());
     int surrogateKey = 0;
     List<Integer> invertedIndexList = new ArrayList<>(data.size());

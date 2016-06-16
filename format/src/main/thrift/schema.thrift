@@ -91,7 +91,12 @@ struct ColumnSchema{
     /**
 	* To specify the visibily of the column by default its false
 	*/
-	14: optional bool invisible;	
+	14: optional bool invisible;
+
+	/**
+	 * column reference id
+	 */
+	15: optional string columnReferenceId;	
 	
 }
 

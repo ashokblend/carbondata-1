@@ -3,6 +3,8 @@ package org.carbondata.core.carbon;
 import java.io.Serializable;
 import java.util.Map;
 
+import org.carbondata.core.carbon.metadata.datatype.DataType;
+
 /**
  * Column unique identifier
  */
@@ -23,13 +25,17 @@ public class ColumnIdentifier implements Serializable {
    */
   private Map<String, String> columnProperties;
 
+  private DataType dataType;
+
   /**
    * @param columnId
    * @param columnProperties
    */
-  public ColumnIdentifier(String columnId, Map<String, String> columnProperties) {
+  public ColumnIdentifier(String columnId, Map<String, String> columnProperties,
+      DataType dataType) {
     this.columnId = columnId;
     this.columnProperties = columnProperties;
+    this.dataType = dataType;
   }
 
   /**
@@ -48,6 +54,10 @@ public class ColumnIdentifier implements Serializable {
       return columnProperties.get(columnProperty);
     }
     return null;
+  }
+
+  public DataType getDataType() {
+    return this.dataType;
   }
 
   @Override public int hashCode() {

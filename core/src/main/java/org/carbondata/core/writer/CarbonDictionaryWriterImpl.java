@@ -25,11 +25,11 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.carbondata.common.factory.CarbonCommonFactory;
 import org.carbondata.common.logging.LogService;
 import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
 import org.carbondata.core.carbon.ColumnIdentifier;
-import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.carbon.path.CarbonTablePath;
 import org.carbondata.core.constants.CarbonCommonConstants;
 import org.carbondata.core.datastorage.store.filesystem.CarbonFile;
@@ -37,6 +37,7 @@ import org.carbondata.core.datastorage.store.impl.FileFactory;
 import org.carbondata.core.reader.CarbonDictionaryColumnMetaChunk;
 import org.carbondata.core.reader.CarbonDictionaryMetadataReader;
 import org.carbondata.core.reader.CarbonDictionaryMetadataReaderImpl;
+import org.carbondata.core.service.PathService;
 import org.carbondata.core.util.CarbonProperties;
 import org.carbondata.core.util.CarbonUtil;
 import org.carbondata.format.ColumnDictionaryChunk;
@@ -248,8 +249,9 @@ public class CarbonDictionaryWriterImpl implements CarbonDictionaryWriter {
   }
 
   protected void initPaths() {
-    CarbonTablePath carbonTablePath =
-        CarbonStorePath.getCarbonTablePath(this.hdfsStorePath, carbonTableIdentifier);
+    PathService pathService = CarbonCommonFactory.getPathService();
+    CarbonTablePath carbonTablePath = pathService.getCarbonTablePath(columnIdentifier,
+            this.hdfsStorePath, carbonTableIdentifier);
     this.dictionaryFilePath = carbonTablePath.getDictionaryFilePath(columnIdentifier.getColumnId());
     this.dictionaryMetaFilePath =
         carbonTablePath.getDictionaryMetaFilePath(columnIdentifier.getColumnId());

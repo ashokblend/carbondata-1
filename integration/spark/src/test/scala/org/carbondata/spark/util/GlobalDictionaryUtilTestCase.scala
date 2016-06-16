@@ -160,9 +160,8 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     val dimension = table.getDimensionByName(table.getFactTableName, columnName)
     val tableIdentifier = new CarbonTableIdentifier(table.getDatabaseName, table.getFactTableName, "uniqueid")
 
-    val columnIdentifier = new ColumnIdentifier(dimension.getColumnId, dimension.getColumnProperties)
     val dictColumnIdentifier = new DictionaryColumnUniqueIdentifier(tableIdentifier,
-      columnIdentifier, dimension.getDataType
+      dimension.getColumnIdentifier, dimension.getDataType
     )
     val dict = CarbonLoaderUtil.getDictionary(dictColumnIdentifier,
       CarbonHiveContext.hdfsCarbonBasePath

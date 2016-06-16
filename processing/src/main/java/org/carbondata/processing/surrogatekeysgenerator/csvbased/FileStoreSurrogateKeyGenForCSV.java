@@ -243,7 +243,7 @@ public class FileStoreSurrogateKeyGenForCSV extends CarbonCSVBasedDimSurrogateKe
         complexType.getAllPrimitiveChildren(primitiveChild);
         for (GenericDataType eachPrimitive : primitiveChild) {
           ColumnIdentifier columnIdentifier = new ColumnIdentifier(eachPrimitive.getColumnId(),
-              columnsInfo.getColumnProperties(eachPrimitive.getName()));
+              columnsInfo.getColumnProperties(eachPrimitive.getName()), details.getColumnType());
           String dimColumnName =
               tableName + CarbonCommonConstants.UNDERSCORE + eachPrimitive.getName();
           DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier =
@@ -253,7 +253,8 @@ public class FileStoreSurrogateKeyGenForCSV extends CarbonCSVBasedDimSurrogateKe
         }
       } else {
         ColumnIdentifier columnIdentifier =
-            new ColumnIdentifier(dimColumnIds[i], columnsInfo.getColumnProperties(dimColName));
+            new ColumnIdentifier(dimColumnIds[i], columnsInfo.getColumnProperties(dimColName),
+                details.getColumnType());
         DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier =
             new DictionaryColumnUniqueIdentifier(carbonTableIdentifier, columnIdentifier);
         dictionaryColumnUniqueIdentifiers.add(dictionaryColumnUniqueIdentifier);

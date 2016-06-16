@@ -47,7 +47,6 @@ import org.carbondata.core.cache.dictionary.DictionaryChunksWrapper;
 import org.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.carbondata.core.cache.dictionary.ForwardDictionary;
 import org.carbondata.core.carbon.AbsoluteTableIdentifier;
-import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.carbon.datastore.IndexKey;
 import org.carbondata.core.carbon.datastore.block.SegmentProperties;
 import org.carbondata.core.carbon.metadata.datatype.DataType;
@@ -870,11 +869,9 @@ public final class FilterUtil {
    */
   public static Dictionary getForwardDictionaryCache(AbsoluteTableIdentifier tableIdentifier,
       CarbonDimension carbonDimension) throws QueryExecutionException {
-    ColumnIdentifier columnIdentifier =
-        new ColumnIdentifier(carbonDimension.getColumnId(), carbonDimension.getColumnProperties());
     DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier =
         new DictionaryColumnUniqueIdentifier(tableIdentifier.getCarbonTableIdentifier(),
-            columnIdentifier, carbonDimension.getDataType());
+            carbonDimension.getColumnIdentifier(), carbonDimension.getDataType());
     CacheProvider cacheProvider = CacheProvider.getInstance();
     Cache forwardDictionaryCache =
         cacheProvider.createCache(CacheType.FORWARD_DICTIONARY, tableIdentifier.getStorePath());

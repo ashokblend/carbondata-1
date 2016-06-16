@@ -168,8 +168,7 @@ case class DescribeFormattedCommand(sql: String, tblIdentifier: Seq[String])
   override def output: Seq[AttributeReference] = {
     Seq(AttributeReference("col_name", StringType, nullable = false)(),
       AttributeReference("data_type", StringType, nullable = false)(),
-      AttributeReference("comment", StringType, nullable = false)(),
-      AttributeReference("column_property", StringType, nullable = false)())
+      AttributeReference("comment", StringType, nullable = false)())
   }
 }
 

@@ -39,7 +39,6 @@ import org.carbondata.core.cache.dictionary.Dictionary;
 import org.carbondata.core.cache.dictionary.DictionaryColumnUniqueIdentifier;
 import org.carbondata.core.carbon.AbsoluteTableIdentifier;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
-import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.carbon.datastore.block.SegmentProperties;
 import org.carbondata.core.carbon.metadata.CarbonMetadata;
 import org.carbondata.core.carbon.metadata.encoder.Encoding;
@@ -361,15 +360,13 @@ public class QueryUtil {
     for (String columnId : dictionaryColumnIdList) {
       CarbonDimension dimension = CarbonMetadata.getInstance()
           .getCarbonDimensionBasedOnColIdentifier(carbonTable, columnId);
-      ColumnIdentifier columnIdentifier =
-          new ColumnIdentifier(columnId, dimension.getColumnProperties());
       if (null == dimension) {
         throw new QueryExecutionException(
-            "The column id " + columnIdentifier + " could not be resolved.");
+            "The column id " + columnId + " could not be resolved.");
       }
       DictionaryColumnUniqueIdentifier dictionaryColumnUniqueIdentifier =
-          new DictionaryColumnUniqueIdentifier(carbonTableIdentifier, columnIdentifier,
-              dimension.getDataType());
+          new DictionaryColumnUniqueIdentifier(carbonTableIdentifier,
+              dimension.getColumnIdentifier(), dimension.getDataType());
       dictionaryColumnUniqueIdentifiers.add(dictionaryColumnUniqueIdentifier);
     }
     return dictionaryColumnUniqueIdentifiers;

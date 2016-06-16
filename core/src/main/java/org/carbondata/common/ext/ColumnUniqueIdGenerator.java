@@ -16,39 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.carbondata.common.factory;
+package org.carbondata.common.ext;
 
-import org.carbondata.common.ext.ColumnUniqueIdGenerator;
-import org.carbondata.common.ext.DictionaryFactory;
-import org.carbondata.common.ext.PathFactory;
+import java.util.UUID;
+
+import org.carbondata.core.carbon.metadata.schema.table.column.ColumnSchema;
 import org.carbondata.core.service.ColumnUniqueIdService;
-import org.carbondata.core.service.DictionaryService;
-import org.carbondata.core.service.PathService;
 
 /**
- * Interface to get services
+ * It returns unique id given column
  */
-public class CarbonCommonFactory {
+public class ColumnUniqueIdGenerator implements ColumnUniqueIdService {
 
-  /**
-   * @return dictionary service
-   */
-  public static DictionaryService getDictionaryService() {
-    return DictionaryFactory.getInstance();
+  private static ColumnUniqueIdService columnUniqueIdService = new ColumnUniqueIdGenerator();
+
+  @Override public String generateUniqueId(String schemaName, ColumnSchema columnSchema) {
+    return UUID.randomUUID().toString();
   }
 
-  /**
-   * @return path service
-   */
-  public static PathService getPathService() {
-    return PathFactory.getInstance();
-  }
-
-  /**
-   * @return unique id generator
-   */
-  public static ColumnUniqueIdService getColumnUniqueIdGenerator() {
-    return ColumnUniqueIdGenerator.getInstance();
+  public static ColumnUniqueIdService getInstance() {
+    return columnUniqueIdService;
   }
 
 }

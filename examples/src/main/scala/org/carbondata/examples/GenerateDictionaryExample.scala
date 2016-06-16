@@ -76,7 +76,7 @@ object GenerateDictionaryExample {
       println(s"dictionary of dimension: ${dimension.getColName}")
       println(s"Key\t\t\tValue")
       val columnIdentifier = new DictionaryColumnUniqueIdentifier(carbonTableIdentifier,
-        new ColumnIdentifier(dimension.getColumnId, null), dimension.getDataType)
+        dimension.getColumnIdentifier, dimension.getDataType)
       val dict = CarbonLoaderUtil.getDictionary(columnIdentifier, carbonContext.storePath)
       var index: Int = 1
       var distinctValue = dict.getDictionaryValueForKey(index)

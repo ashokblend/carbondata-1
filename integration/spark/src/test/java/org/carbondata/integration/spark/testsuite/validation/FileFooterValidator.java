@@ -44,7 +44,7 @@ public class FileFooterValidator {
                 + "PARTITIONDATA(DELIMITER ',', QUOTECHAR '\"')");
     String storePath =
         CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION);
-    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("default", "validatefooter");
+    CarbonTableIdentifier tableIdentifier = new CarbonTableIdentifier("default", "validatefooter", "1");
     String segmentPath = CarbonStorePath.getCarbonTablePath(storePath, tableIdentifier)
         .getCarbonDataDirectoryPath("0", "0");
     CarbonFile carbonFile =

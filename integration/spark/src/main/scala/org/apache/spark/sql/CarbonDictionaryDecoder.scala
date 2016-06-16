@@ -113,9 +113,8 @@ case class CarbonDictionaryDecoder(
             carbonDimension.hasEncoding(Encoding.DICTIONARY) &&
             !carbonDimension.hasEncoding(Encoding.DIRECT_DICTIONARY) &&
             canBeDecoded(attr)) {
-          val columnIdentifier = new ColumnIdentifier(carbonDimension.getColumnId,
-              carbonDimension.getColumnProperties)
-          (carbonTable.getFactTableName, columnIdentifier, carbonDimension.getDataType)
+          (carbonTable.getFactTableName, carbonDimension.getColumnIdentifier,
+              carbonDimension.getDataType)
         } else {
           (null, null, null)
         }

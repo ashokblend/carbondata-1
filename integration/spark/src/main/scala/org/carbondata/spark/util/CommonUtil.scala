@@ -161,9 +161,4 @@ object CommonUtil {
       false
     }
   }
-
-  def getColumnUniqueId(dataType: DataType,
-      colProps: java.util.Map[String, String], schemaName: String): String = {
-    UUID.randomUUID().toString()
-  }
 }

@@ -55,6 +55,7 @@ import org.carbondata.spark.load.CarbonLoaderUtil
 import org.carbondata.spark.load.CarbonLoadModel
 import org.carbondata.spark.partition.reader.CSVWriter
 import org.carbondata.spark.rdd.{ArrayParser, CarbonBlockDistinctValuesCombineRDD, CarbonDataRDDFactory, CarbonGlobalDictionaryGenerateRDD, ColumnPartitioner, DataFormat, DictionaryLoadModel, GenericParser, PrimitiveParser, StructParser}
+import org.carbondata.spark.CarbonSparkFactory
 
 /**
  * A object which provide a method to generate global dictionary from CSV files.
@@ -184,9 +185,8 @@ object GlobalDictionaryUtil extends Logging {
   def readGlobalDictionaryFromCache(model: DictionaryLoadModel): HashMap[String, Dictionary] = {
     val dictMap = new HashMap[String, Dictionary]
     model.primDimensions.zipWithIndex.filter(f => model.dictFileExists(f._2)).foreach { m =>
-      val columnIdentifier = new ColumnIdentifier(m._1.getColumnId, m._1.getColumnProperties)
       val dict = CarbonLoaderUtil.getDictionary(model.table,
-        columnIdentifier, model.hdfsLocation,
+        m._1.getColumnIdentifier, model.hdfsLocation,
         m._1.getDataType
       )
       dictMap.put(m._1.getColumnId, dict)
@@ -302,57 +302,13 @@ object GlobalDictionaryUtil extends Logging {
         isComplexes += dimensions(i).isComplex
       }
     }
+    val carbonTablePath = CarbonStorePath.getCarbonTablePath(hdfsLocation, table)
     val primDimensions = primDimensionsBuffer.map { x => x }.toArray
-    val dictFilePaths = new Array[String](primDimensions.length)
-    val dictFileExists = new Array[Boolean](primDimensions.length)
-    val columnIdentifier = new Array[ColumnIdentifier](primDimensions.length)
-    val pathService = CarbonCommonFactory.getPathService
-    val fileType = FileFactory.getFileType(dictfolderPath)
-    // Metadata folder
-    val metadataDirectory = FileFactory.getCarbonFile(dictfolderPath, fileType)
-    // need list all dictionary file paths with exists flag
-    metadataDirectory.exists match {
-      case true =>
-        // if Metadata folder is exists, check whether each dictionary file is exists or not.
-        // 1 list all dictionary files in Metadata folder
-        val carbonFiles = metadataDirectory.listFiles(new CarbonFileFilter {
-          @Override def accept(pathname: CarbonFile): Boolean = {
-            CarbonTablePath.isDictionaryFile(pathname)
-          }
-        })
-        // 2 put dictionary file names to fileNamesMap
-        val fileNamesMap = new HashMap[String, Int]
-        for (i <- 0 until carbonFiles.length) {
-          fileNamesMap.put(carbonFiles(i).getName, i)
-        }
-        // 3 lookup fileNamesMap, if file name is in fileNamesMap, file is exists, or not.
-        primDimensions.zipWithIndex.foreach { f =>
-          val carbonTablePath = pathService.getCarbonTablePath(columnIdentifier(f._2),
-              hdfsLocation, table)
-          dictFilePaths(f._2) = carbonTablePath.getDictionaryFilePath(f._1.getColumnId)
-          dictFileExists(f._2) =
-            fileNamesMap.get(CarbonTablePath.getDictionaryFileName(f._1.getColumnId)) match {
-              case None => false
-              case Some(_) => true
-            }
-        }
-      case false =>
-        // if Metadata folder is not exists, all dictionary files are not exists also.
-        try {
-          // create Metadata folder
-          FileFactory.mkdirs(dictfolderPath, fileType)
-        } catch {
-          case ex: IOException =>
-            throw new IOException(s"Failed to created dictionary folder: ${dictfolderPath}")
-        }
-        primDimensions.zipWithIndex.foreach { f =>
-          val carbonTablePath = pathService.getCarbonTablePath(columnIdentifier(f._2),
-              hdfsLocation, table)
-          dictFilePaths(f._2) = carbonTablePath.getDictionaryFilePath(f._1.getColumnId)
-          // all dictionary files are not exists
-          dictFileExists(f._2) = false
-        }
-    }
+    val dictDetail = CarbonSparkFactory.getDictionaryDetailService().
+    getDictionaryDetail(dictfolderPath, primDimensions, table, hdfsLocation)
+    val dictFilePaths = dictDetail.dictFilePaths
+    val dictFileExists = dictDetail.dictFileExists
+    val columnIdentifier = dictDetail.columnIdentifiers
 
     // load high cardinality identify configure
     val highCardIdentifyEnable = CarbonProperties.getInstance().getProperty(
