@@ -320,7 +320,12 @@ object GlobalDictionaryUtil extends Logging {
           dictFilePaths(f._2) = carbonTablePath.getDictionaryFilePath(f._1.getColumnId)
           dictFileExists(f._2) =
             fileNamesMap.get(CarbonTablePath.getDictionaryFileName(f._1.getColumnId)) match {
-              case None => false
+              case None =>
+                if (!dictFilePaths(f._2).startsWith(dictfolderPath)) {
+                  FileFactory.isFileExist(dictFilePaths(f._2), fileType)
+                } else {
+                  false
+                }
               case Some(_) => true
             }
         }
