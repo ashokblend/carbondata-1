@@ -345,6 +345,7 @@ public class CarbonDictionaryWriterImplTest {
       }
     } finally {
       writer.close();
+      writer.commit();
     }
   }
 
@@ -361,6 +362,8 @@ public class CarbonDictionaryWriterImplTest {
     writer.write(convertStringListToByteArray(dataSet1));
     // close the writer
     writer.close();
+    //write metadata
+    writer.commit();
     // record end offset of file
     long end_offset = CarbonUtil.getFileSize(this.dictionaryFilePath);
     // read dictionary chunk from dictionary file

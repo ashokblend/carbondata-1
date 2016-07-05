@@ -27,6 +27,9 @@ import org.carbondata.core.carbon.CarbonTableIdentifier;
 import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.carbon.path.CarbonStorePath;
 import org.carbondata.core.carbon.path.CarbonTablePath;
+import org.carbondata.core.constants.CarbonCommonConstants;
+import org.carbondata.core.datastorage.store.filesystem.CarbonFile;
+import org.carbondata.core.util.CarbonProperties;
 import org.carbondata.core.util.CarbonUtil;
 import org.carbondata.core.writer.ThriftWriter;
 import org.carbondata.format.ColumnSortInfo;
@@ -146,7 +149,39 @@ public class CarbonDictionarySortIndexWriterImpl implements CarbonDictionarySort
   protected void initPath() {
     CarbonTablePath carbonTablePath =
         CarbonStorePath.getCarbonTablePath(carbonStorePath, carbonTableIdentifier);
-    this.sortIndexFilePath = carbonTablePath.getSortIndexFilePath(columnIdentifier.getColumnId());
+    String dictionaryPath = carbonTablePath.getDictionaryFilePath(columnIdentifier.getColumnId());
+    long dictOffset = CarbonUtil.getFileSize(dictionaryPath);
+    this.sortIndexFilePath =
+        carbonTablePath.getSortIndexFilePath(columnIdentifier.getColumnId(), dictOffset);
+    cleanUpOldSortIndex(carbonTablePath);
+  }
+
+  /**
+   * It cleans up old unused sortindex file
+   * @param carbonTablePath
+   */
+  private void cleanUpOldSortIndex(CarbonTablePath carbonTablePath) {
+    CarbonFile[] files = carbonTablePath
+        .getSortIndexFiles(carbonTablePath.getMetadataDirectoryPath(),
+            columnIdentifier.getColumnId());
+    int maxTime;
+    try {
+      maxTime = Integer.parseInt(CarbonProperties.getInstance()
+          .getProperty(CarbonCommonConstants.MAX_QUERY_EXECUTION_TIME));
+    } catch (NumberFormatException e) {
+      maxTime = CarbonCommonConstants.DEFAULT_MAX_QUERY_EXECUTION_TIME;
+    }
+    if (null != files) {
+      for (CarbonFile carbonFile : files) {
+        long difference = System.currentTimeMillis() - carbonFile.getLastModifiedTime();
+        long minutesElapsed = (difference / (1000 * 60));
+        if (minutesElapsed > maxTime) {
+          if (!carbonFile.delete()) {
+            LOGGER.warn("Failed to delete sortindex file." + carbonFile.getAbsolutePath());
+          }
+        }
+      }
+    }
   }
 
   /**

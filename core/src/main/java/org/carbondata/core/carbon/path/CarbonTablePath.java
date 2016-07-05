@@ -152,6 +152,16 @@ public class CarbonTablePath extends Path {
   }
 
   /**
+   *
+   * @param columnId
+   * @param dictOffset
+   * @return absolute path of sortindex with appeneded dictionary offset
+   */
+  public String getSortIndexFilePath(String columnId, long dictOffset) {
+    return getMetaDataDir() + File.separator + columnId + "_" + dictOffset + SORT_INDEX_EXT;
+  }
+
+  /**
    * @return absolute path of schema file
    */
   public String getSchemaFilePath() {
@@ -379,5 +389,24 @@ public class CarbonTablePath extends Path {
       }
       return INVALID_SEGMENT_ID;
     }
+  }
+
+  /**
+   * Below method will be used to get sort index file present in mentioned folder
+   *
+   * @param sortIndexDir directory where sort index file resides
+   * @param columnUniqueId   columnunique id
+   * @return sort index carbon files
+   */
+  public CarbonFile[] getSortIndexFiles(String sortIndexDir, final String columnUniqueId) {
+    CarbonFile carbonFile =
+        FileFactory.getCarbonFile(sortIndexDir, FileFactory.getFileType(sortIndexDir));
+
+    CarbonFile[] files = carbonFile.listFiles(new CarbonFileFilter() {
+      @Override public boolean accept(CarbonFile file) {
+        return file.getName().startsWith(columnUniqueId) && file.getName().endsWith(SORT_INDEX_EXT);
+      }
+    });
+    return files;
   }
 }
