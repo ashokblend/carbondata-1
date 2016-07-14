@@ -29,7 +29,6 @@ import org.apache.commons.lang3.{ArrayUtils, StringUtils}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
-import org.carbon.common.transaction.CarbonTransactionImpl
 
 import org.carbondata.common.logging.LogServiceFactory
 import org.carbondata.core.carbon.{CarbonTableIdentifier, ColumnIdentifier}
@@ -38,7 +37,10 @@ import org.carbondata.core.carbon.metadata.encoder.Encoding
 import org.carbondata.core.carbon.metadata.schema.table.column.CarbonDimension
 import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.core.datastorage.store.impl.FileFactory
+import org.carbondata.core.locks.CarbonLockFactory
+import org.carbondata.core.locks.LockUsage
 import org.carbondata.core.util.CarbonTimeStatisticsFactory
+import org.carbondata.processing.etl.DataLoadingException
 import org.carbondata.spark.load.{CarbonLoaderUtil, CarbonLoadModel}
 import org.carbondata.spark.partition.reader.{CSVParser, CSVReader}
 import org.carbondata.spark.tasks.DictionaryWriterTask
@@ -296,19 +298,26 @@ class CarbonGlobalDictionaryGenerateRDD(
             null
           }
           val dictCacheTime = (System.currentTimeMillis - t2)
+          val t3 = System.currentTimeMillis()
           val dictWriteTask = new DictionaryWriterTask(valuesBuffer,
             dictionaryForDistinctValueLookUp,
             model,
             split.index)
-          val sortIndexWriteTask = new SortIndexWriterTask(model,
-            split.index,
-            dictionaryForDistinctValueLookUp,
-            dictWriteTask)
-          val transactionHandler = new CarbonTransactionImpl[DictionaryStats]()
-          transactionHandler.addTask(sortIndexWriteTask)
-          transactionHandler.executeTasks()
-          transactionHandler.commit()
-          val dictStats = transactionHandler.get(0)
+          // execute dictionary writer task to get distinct values
+          val distinctValues = dictWriteTask.execute()
+          val dictWriteTime = (System.currentTimeMillis() - t3)
+          val t4 = System.currentTimeMillis()
+          // if new data came than rewrite sort index file
+          if (distinctValues.size() > 0) {
+            val sortIndexWriteTask = new SortIndexWriterTask(model,
+              split.index,
+              dictionaryForDistinctValueLookUp,
+              distinctValues)
+            sortIndexWriteTask.execute()
+          }
+          val sortIndexWriteTime = (System.currentTimeMillis() - t4)
+          // After sortIndex writing, update dictionaryMeta
+          dictWriteTask.updateMetaData()
           // clear the value buffer after writing dictionary data
           valuesBuffer.clear
           org.carbondata.core.util.CarbonUtil
@@ -316,11 +325,11 @@ class CarbonGlobalDictionaryGenerateRDD(
           dictionaryForDistinctValueLookUpCleared = true
           LOGGER.info("\n columnName:" + model.primDimensions(split.index).getColName +
               "\n columnId:" + model.primDimensions(split.index).getColumnId +
-              "\n new distinct values count:" + dictStats.distinctValues.size() +
+              "\n new distinct values count:" + distinctValues.size() +
               "\n combine lists:" + combineListTime +
               "\n create dictionary cache:" + dictCacheTime +
-              "\n sort list, distinct and write:" + dictStats.dictWriteTime +
-              "\n write sort info:" + dictStats.sortIndexWriteTime)
+              "\n sort list, distinct and write:" + dictWriteTime +
+              "\n write sort info:" + sortIndexWriteTime)
         }
       } catch {
         case ex: Exception =>

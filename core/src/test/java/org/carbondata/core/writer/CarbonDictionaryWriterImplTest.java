@@ -245,9 +245,15 @@ public class CarbonDictionaryWriterImplTest {
   private void overwriteDictionaryMetaFile(ColumnDictionaryChunkMeta firstDictionaryChunkMeta,
       String dictionaryFile) throws IOException {
     ThriftWriter thriftMetaChunkWriter = new ThriftWriter(dictionaryFile, false);
-    thriftMetaChunkWriter.open();
-    thriftMetaChunkWriter.write(firstDictionaryChunkMeta);
-    thriftMetaChunkWriter.close();
+    try {
+      thriftMetaChunkWriter.open();
+      thriftMetaChunkWriter.write(firstDictionaryChunkMeta);
+    } catch (IOException e) {
+
+    } finally {
+      thriftMetaChunkWriter.close();
+    }
+
   }
 
   /**

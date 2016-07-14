@@ -16,8 +16,6 @@
  */
 package org.carbondata.spark.tasks
 
-import org.carbon.common.transaction.Task
-
 import org.carbondata.common.factory.CarbonCommonFactory
 import org.carbondata.core.cache.dictionary.Dictionary
 import org.carbondata.core.writer.sortindex.{CarbonDictionarySortIndexWriter,
@@ -28,6 +26,7 @@ import org.carbondata.spark.rdd.DictionaryStats
 
 /**
  * This task writes sort index file
+ *
  * @param model
  * @param index
  * @param dictionary
@@ -37,38 +36,27 @@ import org.carbondata.spark.rdd.DictionaryStats
 class SortIndexWriterTask(model: DictionaryLoadModel,
     index: Int,
     dictionary: Dictionary,
-    dictWriterTask: Task[DictionaryStats],
-    var carbonDictionarySortIndexWriter: CarbonDictionarySortIndexWriter = null)
-  extends Task[DictionaryStats] {
-  def execute(): DictionaryStats = {
-    val dictStats = dictWriterTask.execute()
-    val start = System.currentTimeMillis()
-    if (dictStats.distinctValues.size() > 0) {
-      val preparator: CarbonDictionarySortInfoPreparator = new CarbonDictionarySortInfoPreparator
-      val dictService = CarbonCommonFactory.getDictionaryService
-      val dictionarySortInfo: CarbonDictionarySortInfo =
-        preparator.getDictionarySortInfo(dictStats.distinctValues, dictionary,
-          model.primDimensions(index).getDataType)
-      carbonDictionarySortIndexWriter =
-        dictService.getDictionarySortIndexWriter(model.table, model.columnIdentifier(index),
-          model.hdfsLocation)
-      carbonDictionarySortIndexWriter.writeSortIndex(dictionarySortInfo.getSortIndex)
-      carbonDictionarySortIndexWriter
-        .writeInvertedSortIndex(dictionarySortInfo.getSortIndexInverted)
+    distinctValues: java.util.List[String],
+    var carbonDictionarySortIndexWriter: CarbonDictionarySortIndexWriter = null) {
+  def execute() {
+    try {
+      if (distinctValues.size() > 0) {
+        val preparator: CarbonDictionarySortInfoPreparator = new CarbonDictionarySortInfoPreparator
+        val dictService = CarbonCommonFactory.getDictionaryService
+        val dictionarySortInfo: CarbonDictionarySortInfo =
+          preparator.getDictionarySortInfo(distinctValues, dictionary,
+            model.primDimensions(index).getDataType)
+        carbonDictionarySortIndexWriter =
+          dictService.getDictionarySortIndexWriter(model.table, model.columnIdentifier(index),
+            model.hdfsLocation)
+        carbonDictionarySortIndexWriter.writeSortIndex(dictionarySortInfo.getSortIndex)
+        carbonDictionarySortIndexWriter
+          .writeInvertedSortIndex(dictionarySortInfo.getSortIndexInverted)
+      }
+    } finally {
+      if (null != carbonDictionarySortIndexWriter) {
+        carbonDictionarySortIndexWriter.close()
+      }
     }
-    DictionaryStats(dictStats.distinctValues,
-      dictStats.dictWriteTime,
-      (System.currentTimeMillis() - start))
-  }
-
-  def commit() {
-    if (null != carbonDictionarySortIndexWriter) {
-      carbonDictionarySortIndexWriter.close()
-    }
-    dictWriterTask.commit()
-  }
-
-  def rollback() {
-
   }
 }

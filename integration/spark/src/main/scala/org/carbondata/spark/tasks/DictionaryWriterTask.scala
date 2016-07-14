@@ -16,16 +16,15 @@
  */
 package org.carbondata.spark.tasks
 
-import scala.collection.mutable
+import java.io.IOException
 
-import org.carbon.common.transaction.Task
+import scala.collection.mutable
 
 import org.carbondata.common.factory.CarbonCommonFactory
 import org.carbondata.core.cache.dictionary.Dictionary
 import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.core.writer.CarbonDictionaryWriter
 import org.carbondata.spark.rdd.DictionaryLoadModel
-import org.carbondata.spark.rdd.DictionaryStats
 
 /**
  *
@@ -38,18 +37,16 @@ import org.carbondata.spark.rdd.DictionaryStats
 class DictionaryWriterTask(valuesBuffer: mutable.HashSet[String],
     dictionary: Dictionary,
     model: DictionaryLoadModel, columnIndex: Int,
-    var writer: CarbonDictionaryWriter = null) extends Task[DictionaryStats] {
+    var writer: CarbonDictionaryWriter = null) {
 
   /**
    * execute the task
    *
-   * @return statistics of dictionary transaction
+   * @return distinctValueList and time taken to write
    */
-  def execute(): DictionaryStats = {
-    val start = System.currentTimeMillis()
+  def execute(): java.util.List[String] = {
     val values = valuesBuffer.toArray
     java.util.Arrays.sort(values, Ordering[String])
-    var distinctValueCount: Int = 0
     val dictService = CarbonCommonFactory.getDictionaryService
     writer = dictService.getDictionaryWriter(
       model.table,
@@ -61,7 +58,6 @@ class DictionaryWriterTask(valuesBuffer: mutable.HashSet[String],
       if (!model.dictFileExists(columnIndex)) {
         writer.write(CarbonCommonConstants.MEMBER_DEFAULT_VAL)
         distinctValues.add(CarbonCommonConstants.MEMBER_DEFAULT_VAL)
-        distinctValueCount += 1
       }
 
       if (values.length >= 1) {
@@ -71,7 +67,6 @@ class DictionaryWriterTask(valuesBuffer: mutable.HashSet[String],
             .INVALID_SURROGATE_KEY) {
             writer.write(values(0))
             distinctValues.add(values(0))
-            distinctValueCount += 1
           }
           for (i <- 1 until values.length) {
             if (preValue != values(i)) {
@@ -80,7 +75,6 @@ class DictionaryWriterTask(valuesBuffer: mutable.HashSet[String],
                 writer.write(values(i))
                 distinctValues.add(values(i))
                 preValue = values(i)
-                distinctValueCount += 1
               }
             }
           }
@@ -88,34 +82,33 @@ class DictionaryWriterTask(valuesBuffer: mutable.HashSet[String],
         } else {
           writer.write(values(0))
           distinctValues.add(values(0))
-          distinctValueCount += 1
           for (i <- 1 until values.length) {
             if (preValue != values(i)) {
               writer.write(values(i))
               distinctValues.add(values(i))
               preValue = values(i)
-              distinctValueCount += 1
             }
           }
         }
       }
-    } finally {
-       writer.close()
+    } catch {
+      case ex: IOException =>
+        throw ex
     }
-
-    DictionaryStats(distinctValues, (System.currentTimeMillis() - start), 0)
+    finally {
+      if (null != writer) {
+        writer.close()
+      }
+    }
+    distinctValues
   }
 
   /**
-   * commit the transaction
+   * update dictionary metadata
    */
-  def commit() {
+  def updateMetaData() {
     if (null != writer) {
       writer.commit()
     }
-  }
-
-  def rollback() {
-    // do nothing
   }
 }

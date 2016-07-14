@@ -398,11 +398,8 @@ public class CarbonTablePath extends Path {
    * @param columnUniqueId   columnunique id
    * @return sort index carbon files
    */
-  public CarbonFile[] getSortIndexFiles(String sortIndexDir, final String columnUniqueId) {
-    CarbonFile carbonFile =
-        FileFactory.getCarbonFile(sortIndexDir, FileFactory.getFileType(sortIndexDir));
-
-    CarbonFile[] files = carbonFile.listFiles(new CarbonFileFilter() {
+  public CarbonFile[] getSortIndexFiles(CarbonFile sortIndexDir, final String columnUniqueId) {
+    CarbonFile[] files = sortIndexDir.listFiles(new CarbonFileFilter() {
       @Override public boolean accept(CarbonFile file) {
         return file.getName().startsWith(columnUniqueId) && file.getName().endsWith(SORT_INDEX_EXT);
       }
