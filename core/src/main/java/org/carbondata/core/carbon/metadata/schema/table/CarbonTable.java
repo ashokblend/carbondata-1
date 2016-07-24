@@ -77,6 +77,11 @@ public class CarbonTable implements Serializable {
    */
   private long tableLastUpdatedTime;
 
+  /**
+   * Table properties
+   */
+  private TableProperties tableProperties;
+
   public CarbonTable() {
     this.tableDimensionsMap = new HashMap<String, List<CarbonDimension>>();
     this.tableMeasuresMap = new HashMap<String, List<CarbonMeasure>>();
@@ -115,6 +120,7 @@ public class CarbonTable implements Serializable {
     List<CarbonMeasure> measures = new ArrayList<CarbonMeasure>();
     this.tableDimensionsMap.put(tableSchema.getTableName(), dimensions);
     this.tableMeasuresMap.put(tableSchema.getTableName(), measures);
+    this.tableProperties = new TableProperties(tableSchema.getTableProperties());
     int dimensionOrdinal = 0;
     int measureOrdinal = 0;
     int keyOrdinal = 0;
@@ -395,5 +401,13 @@ public class CarbonTable implements Serializable {
    */
   public int getPartitionCount() {
     return 1;
+  }
+
+  /**
+   *
+   * @return tableProperties
+   */
+  public TableProperties getTableProperties() {
+    return tableProperties;
   }
 }

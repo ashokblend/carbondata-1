@@ -80,7 +80,8 @@ case class tableModel(
     aggregation: Seq[Aggregation],
     partitioner: Option[Partitioner],
     columnGroups: Seq[String],
-    colProps: Option[util.Map[String, util.List[ColumnProperty]]] = None)
+    colProps: Option[util.Map[String, util.List[ColumnProperty]]] = None,
+    tableProperties: Option[Map[String, String]] = None)
 
 case class Field(column: String, var dataType: Option[String], name: Option[String],
     children: Option[List[Field]], parent: String = null,
@@ -406,6 +407,7 @@ class TableNewProcessor(cm: tableModel, sqlContext: SQLContext) {
     tableSchema.setTableName(cm.cubeName)
     tableSchema.setListOfColumns(allColumns.asJava)
     tableSchema.setSchemaEvalution(schemaEvol)
+    tableSchema.setTableProperties(cm.tableProperties.getOrElse(null).asJava)
     tableInfo.setDatabaseName(cm.schemaName)
     tableInfo.setTableUniqueName(cm.schemaName + "_" + cm.cubeName)
     tableInfo.setLastUpdatedTime(System.currentTimeMillis())

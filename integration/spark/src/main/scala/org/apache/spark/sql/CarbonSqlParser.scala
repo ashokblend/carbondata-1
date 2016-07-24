@@ -542,7 +542,7 @@ class CarbonSqlParser()
       reorderDimensions(dims.map(f => normalizeType(f)).map(f => addParent(f))),
       msrs.map(f => normalizeType(f)), "", null, "",
       None, Seq(), null, Option(noDictionaryDims), Option(noInvertedIdxCols), null, partitioner,
-      groupCols, Some(colProps))
+      groupCols, Some(colProps), Some(tableProperties))
   }
 
   /**

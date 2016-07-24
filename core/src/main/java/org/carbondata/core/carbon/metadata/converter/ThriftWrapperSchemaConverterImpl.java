@@ -178,8 +178,11 @@ public class ThriftWrapperSchemaConverterImpl implements SchemaConverter {
     }
     org.carbondata.format.SchemaEvolution schemaEvolution =
         fromWrapperToExternalSchemaEvolution(wrapperTableSchema.getSchemaEvalution());
-    return new org.carbondata.format.TableSchema(wrapperTableSchema.getTableId(),
-        thriftColumnSchema, schemaEvolution);
+    org.carbondata.format.TableSchema externalTableSchema =
+        new org.carbondata.format.TableSchema(wrapperTableSchema.getTableId(), thriftColumnSchema,
+            schemaEvolution);
+    externalTableSchema.setTableProperties(wrapperTableSchema.getTableProperties());
+    return externalTableSchema;
   }
 
   /* (non-Javadoc)
@@ -348,6 +351,7 @@ public class ThriftWrapperSchemaConverterImpl implements SchemaConverter {
     wrapperTableSchema.setListOfColumns(listOfColumns);
     wrapperTableSchema.setSchemaEvalution(
         fromExternalToWrapperSchemaEvolution(externalTableSchema.getSchema_evolution()));
+    wrapperTableSchema.setTableProperties(externalTableSchema.getTableProperties());
     return wrapperTableSchema;
   }
 

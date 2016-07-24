@@ -34,6 +34,7 @@ import org.carbondata.common.factory.CarbonCommonFactory
 import org.carbondata.common.logging.LogServiceFactory
 import org.carbondata.core.carbon.{CarbonTableIdentifier, ColumnIdentifier}
 import org.carbondata.core.carbon.metadata.schema.table.column.CarbonDimension
+import org.carbondata.core.carbon.metadata.schema.table.TableProperties
 import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.core.datastorage.store.impl.FileFactory
 import org.carbondata.core.locks.CarbonLockFactory
@@ -158,7 +159,8 @@ case class DictionaryLoadModel(table: CarbonTableIdentifier,
     isFirstLoad: Boolean,
     hdfsTempLocation: String,
     lockType: String,
-    zooKeeperUrl: String) extends Serializable
+    zooKeeperUrl: String,
+    tableProperties: TableProperties) extends Serializable
 
 case class ColumnDistinctValues(values: Array[String], rowCount: Long) extends Serializable
 
@@ -329,9 +331,7 @@ class CarbonGlobalDictionaryGenerateRDD(
             valuesBuffer ++= distinctValueList.values
             rowCount += distinctValueList.rowCount
             // check high cardinality
-            if (model.isFirstLoad && model.highCardIdentifyEnable
-                && !model.isComplexes(split.index)
-                && model.dimensions(split.index).isColumnar()) {
+            if (GlobalDictionaryUtil.isApplicableForHighCardinalityCheck(model, split.index)) {
               isHighCardinalityColumn = GlobalDictionaryUtil.isHighCardinalityColumn(
                 valuesBuffer.size, rowCount, model)
               if (isHighCardinalityColumn) {

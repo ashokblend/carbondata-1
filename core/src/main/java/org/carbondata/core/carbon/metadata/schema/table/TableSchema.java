@@ -21,6 +21,7 @@ package org.carbondata.core.carbon.metadata.schema.table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.carbondata.core.carbon.metadata.schema.SchemaEvolution;
 import org.carbondata.core.carbon.metadata.schema.table.column.ColumnSchema;
@@ -50,6 +51,11 @@ public class TableSchema implements Serializable {
    * Columns in the table
    */
   private List<ColumnSchema> listOfColumns;
+
+  /**
+   * Table properties
+   */
+  private Map<String, String> tableProperties;
 
   /**
    * History of schema evolution of this table
@@ -182,4 +188,17 @@ public class TableSchema implements Serializable {
     return true;
   }
 
+  /**
+   * @return table properties
+   */
+  public Map<String, String> getTableProperties() {
+    return tableProperties;
+  }
+
+  /**
+   * @param tableProperties
+   */
+  public void setTableProperties(Map<String, String> tableProperties) {
+    this.tableProperties = tableProperties;
+  }
 }

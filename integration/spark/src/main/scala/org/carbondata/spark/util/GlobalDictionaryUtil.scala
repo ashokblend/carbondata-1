@@ -267,6 +267,18 @@ object GlobalDictionaryUtil extends Logging {
   }
 
   /**
+   *
+   * @param model
+   * @param index
+   * @return true if dimension is fit for high cardinality check
+   */
+  def isApplicableForHighCardinalityCheck(model: DictionaryLoadModel, index: Int): Boolean = {
+    model.isFirstLoad && model.highCardIdentifyEnable && !model.isComplexes(index) &&
+    model.dimensions(index).isColumnar() && !model.tableProperties
+      .isDictionaryIncludeColumn(model.dimensions(index).getColName)
+  }
+
+  /**
    * create a instance of DictionaryLoadModel
    *
    * @param carbonLoadModel  carbon load model
@@ -333,7 +345,8 @@ object GlobalDictionaryUtil extends Logging {
       carbonLoadModel.getLoadMetadataDetails.size() == 0,
       hdfsTempLocation,
       lockType,
-      zookeeperUrl)
+      zookeeperUrl,
+      carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable.getTableProperties)
   }
 
   /**

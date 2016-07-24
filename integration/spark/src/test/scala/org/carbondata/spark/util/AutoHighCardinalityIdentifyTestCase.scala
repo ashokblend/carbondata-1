@@ -40,6 +40,7 @@ import org.carbondata.core.carbon.path.CarbonStorePath
 import org.carbondata.core.carbon.path.CarbonStorePath
 import org.carbondata.core.carbon.metadata.schema.table.CarbonTable
 import org.carbondata.core.util.CarbonUtil
+import org.carbondata.core.util.CarbonProperties
 
 /**
   * Test Case for org.carbondata.spark.util.GlobalDictionaryUtil
@@ -76,7 +77,6 @@ class AutoHighCardinalityIdentifyTestCase extends QueryTest with BeforeAndAfterA
   override def beforeAll {
     buildTestData
     buildTable
-    buildColGrpHighCardTable
   }
 
   def buildTestData() = {
@@ -107,16 +107,6 @@ class AutoHighCardinalityIdentifyTestCase extends QueryTest with BeforeAndAfterA
     }
   }
 
-  def buildColGrpHighCardTable() {
-    try {
-      sql("drop table if exists colgrp_highcard")
-      sql("""create table if not exists colgrp_highcard
-             (hc1 string, c2 string, c3 int)
-             STORED BY 'org.apache.carbondata.format' tblproperties('COLUMN_GROUPS'='(hc1,c2)')""")
-    } catch {
-      case ex: Throwable => logError(ex.getMessage + "\r\n" + ex.getStackTraceString)
-    }    
-  }
   def relation(tableName: String): CarbonRelation = {
     CarbonEnv.getInstance(CarbonHiveContext).carbonCatalog
         .lookupRelation1(Option("default"), tableName, None)(CarbonHiveContext)
@@ -160,27 +150,72 @@ class AutoHighCardinalityIdentifyTestCase extends QueryTest with BeforeAndAfterA
   }
   
   test("skip auto identify high cardinality column for column group") {
-    val oldTable = relation("colgrp_highcard").cubeMeta.carbonTable
-    sql(s"LOAD DATA LOCAL INPATH '$filePath' into table colgrp_highcard")
-    val newTable = relation("colgrp_highcard").cubeMeta.carbonTable
-    sql(s"select hc1 from colgrp_highcard").show
+    CarbonProperties.getInstance.addProperty(CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD, "0")
+    CarbonProperties.getInstance.addProperty(CarbonCommonConstants.HIGH_CARDINALITY_IN_ROW_COUNT_PERCENTAGE, "0")
 
+    sql("create table normal (column1 string,column2 string,column3 string,column4 string,column5 string,column6 string,column7 string,column8 string,column9 string,column10 string,measure1 int,measure2 int,measure3 int,measure4 int) STORED BY 'org.apache.carbondata.format'")
+    sql("LOAD DATA LOCAL INPATH './src/test/resources/10dim_4msr.csv' INTO table normal options('FILEHEADER'='column1,column2,column3,column4,column5,column6,column7,column8,column9,column10,measure1,measure2,measure3,measure4')");
+   
+    sql("create table colgrp_highcard (column1 string,column2 string,column3 string,column4 string,column5 string,column6 string,column7 string,column8 string,column9 string,column10 string,measure1 int,measure2 int,measure3 int,measure4 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES (\"COLUMN_GROUPS\"=\"(column2,column3,column4),(column7,column8,column9)\")")
+    sql("LOAD DATA LOCAL INPATH './src/test/resources/10dim_4msr.csv' INTO table colgrp_highcard options('FILEHEADER'='column1,column2,column3,column4,column5,column6,column7,column8,column9,column10,measure1,measure2,measure3,measure4')");
+
+    
+    
+    val colGrpTable = relation("colgrp_highcard").cubeMeta.carbonTable
+    val normalTable = relation("normal").cubeMeta.carbonTable
+   
     // check dictionary file
-    val tableIdentifier = new CarbonTableIdentifier(newTable.getDatabaseName,
-        newTable.getFactTableName, "1")
-    val carbonTablePath = CarbonStorePath.getCarbonTablePath(CarbonHiveContext.hdfsCarbonBasePath,
-        tableIdentifier)
-    val newHc1 = newTable.getDimensionByName("colgrp_highcard", "hc1")
-    val newC2 = newTable.getDimensionByName("colgrp_highcard", "c2")
-    val dictFileHc1 = carbonTablePath.getDictionaryFilePath(newHc1.getColumnId)
-    val dictFileC2 = carbonTablePath.getDictionaryFilePath(newC2.getColumnId)
-    assert(CarbonUtil.isFileExists(dictFileHc1))
-    assert(CarbonUtil.isFileExists(dictFileC2))
+    val colGrpTableIdentifier = new CarbonTableIdentifier(colGrpTable.getDatabaseName,
+        colGrpTable.getFactTableName, "1")
+    val colGrpTablePath = CarbonStorePath.getCarbonTablePath(CarbonHiveContext.hdfsCarbonBasePath,
+        colGrpTableIdentifier)
+    val normalTableIdentifier = new CarbonTableIdentifier(normalTable.getDatabaseName,
+        normalTable.getFactTableName, "1")
+    val normalTablePath = CarbonStorePath.getCarbonTablePath(CarbonHiveContext.hdfsCarbonBasePath,
+        normalTableIdentifier)
+        
+    val colGrpCol = colGrpTable.getDimensionByName("colgrp_highcard", "column2")
+    val normalCol = normalTable.getDimensionByName("normal", "column2")
+    val colGrpFile = colGrpTablePath.getDictionaryFilePath(colGrpCol.getColumnId)
+    val normalFile = normalTablePath.getDictionaryFilePath(normalCol.getColumnId)
+    assert(CarbonUtil.isFileExists(colGrpFile))
+    assert(!CarbonUtil.isFileExists(normalFile))
     // check the meta data
-    val hc1 = newTable.getDimensionByName("colgrp_highcard", "hc1")
-    val c2 = newTable.getDimensionByName("colgrp_highcard", "c2")
-    assert(hc1.hasEncoding(Encoding.DICTIONARY))
-    assert(c2.hasEncoding(Encoding.DICTIONARY))
+    val colGrpCol2 = colGrpTable.getDimensionByName("colgrp_highcard", "column2")
+    val normalCol2 = normalTable.getDimensionByName("normal", "column2")
+    assert(colGrpCol2.hasEncoding(Encoding.DICTIONARY))
+    assert(!normalCol2.hasEncoding(Encoding.DICTIONARY))
    
   }
+  test("skip auto identify high cardinality dictionary included column") {
+    CarbonProperties.getInstance.addProperty(CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD, "0")
+    CarbonProperties.getInstance.addProperty(CarbonCommonConstants.HIGH_CARDINALITY_IN_ROW_COUNT_PERCENTAGE, "0")
+   
+    sql("create table dictincluded (column1 string,column2 string,column3 string,column4 string,column5 string,column6 string,column7 string,column8 string,column9 string,column10 string,measure1 int,measure2 int,measure3 int,measure4 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES ('DICTIONARY_INCLUDE'='measure1')")
+    sql("LOAD DATA LOCAL INPATH './src/test/resources/10dim_4msr.csv' INTO table dictIncluded options('FILEHEADER'='column1,column2,column3,column4,column5,column6,column7,column8,column9,column10,measure1,measure2,measure3,measure4')");
+
+    
+    
+    val dictIncludeTable = relation("dictincluded").cubeMeta.carbonTable
+    
+    // check dictionary file
+    val dictIncludeTableIdentifier = new CarbonTableIdentifier(dictIncludeTable.getDatabaseName,
+        dictIncludeTable.getFactTableName, "1")
+    val colGrpTablePath = CarbonStorePath.getCarbonTablePath(CarbonHiveContext.hdfsCarbonBasePath,
+        dictIncludeTableIdentifier)
+        
+    val dictIncludeCol = dictIncludeTable.getDimensionByName("dictincluded", "measure1")
+    val dictIncludeFile = colGrpTablePath.getDictionaryFilePath(dictIncludeCol.getColumnId)
+    assert(CarbonUtil.isFileExists(dictIncludeFile))
+    // check the meta data
+    val dictIncludeMsr1 = dictIncludeTable.getDimensionByName("dictincluded", "measure1")
+    assert(dictIncludeMsr1.hasEncoding(Encoding.DICTIONARY))
+   
+  }
+  override def afterAll {
+  CarbonProperties.getInstance.addProperty(CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD, CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD_DEFAULT)
+    CarbonProperties.getInstance.addProperty(CarbonCommonConstants.HIGH_CARDINALITY_IN_ROW_COUNT_PERCENTAGE, CarbonCommonConstants.HIGH_CARDINALITY_IN_ROW_COUNT_PERCENTAGE_DEFAULT)
+    
+  }
+    
 }
