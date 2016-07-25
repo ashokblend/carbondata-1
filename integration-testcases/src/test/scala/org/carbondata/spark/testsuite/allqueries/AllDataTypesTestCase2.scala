@@ -85,6 +85,11 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
           "Latest_webTypeDataVerNumber,Latest_operatorsVersion," +
           "Latest_phonePADPartitionedVersions,Latest_operatorId,gamePointId,gamePointDescription')")
 
+     //hive
+     sql("create table Carbon_automation_test2_hive (imei string,deviceInformationId int,MAC string,deviceColor string,device_backColor string,modelId string,marketName string,AMSize string,ROMSize string,CUPAudit string,CPIClocked string,series string,productionDate timestamp,bomCode string,internalModels string, deliveryTime string, channelsId string, channelsName string , deliveryAreaId string, deliveryCountry string, deliveryProvince string, deliveryCity string,deliveryDistrict string, deliveryStreet string, oxSingleNumber string,contractNumber int, ActiveCheckTime string, ActiveAreaId string, ActiveCountry string, ActiveProvince string, Activecity string, ActiveDistrict string, ActiveStreet string, ActiveOperatorId string, Active_releaseId string, Active_EMUIVersion string, Active_operaSysVersion string, Active_BacVerNumber string, Active_BacFlashVer string, Active_webUIVersion string, Active_webUITypeCarrVer string,Active_webTypeDataVerNumber string, Active_operatorsVersion string, Active_phonePADPartitionedVersions string, Latest_YEAR int, Latest_MONTH int, Latest_DAY int, Latest_HOUR string, Latest_areaId string, Latest_country string, Latest_province string, Latest_city string, Latest_district string, Latest_street string, Latest_releaseId string, Latest_EMUIVersion string, Latest_operaSysVersion string, Latest_BacVerNumber string, Latest_BacFlashVer string, Latest_webUIVersion string, Latest_webUITypeCarrVer string, Latest_webTypeDataVerNumber string, Latest_operatorsVersion string, Latest_phonePADPartitionedVersions string, Latest_operatorId string, gamePointId int,gamePointDescription string)row format delimited fields terminated by ','");
+     sql("LOAD DATA LOCAL INPATH '" + currentDirectory +
+          "/src/test/resources/100_olap.csv' INTO table Carbon_automation_test2_hive")
+          
       sql(
         "create table Carbon_automation_hive (imei string,deviceInformationId int,MAC string," +
         "deviceColor string,device_backColor string,modelId string,marketName string,AMSize " +
@@ -136,13 +141,9 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select channelsId, sum(gamePointId+ 10) Total from Carbon_automation_test2 group by  " +
           "channelsId order by Total"
       ),
-      Seq(Row("2", 18659),
-        Row("7", 20484),
-        Row("1", 20934),
-        Row("4", 20991.197),
-        Row("5", 23024),
-        Row("3", 25241),
-        Row("6", 28542)
+      sql(
+        "select channelsId, sum(gamePointId+ 10) Total from Carbon_automation_test2_hive group by  " +
+          "channelsId order by Total"
       )
     )
 
@@ -163,13 +164,9 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select channelsId, avg(gamePointId+ 10) Total from Carbon_automation_test2 group by  " +
           "channelsId order by Total"
       ),
-      Seq(Row("7", 1138),
-        Row("6", 1502.2105263157894),
-        Row("3", 1577.5625),
-        Row("1", 1744.5),
-        Row("4", 1749.2664166666666),
-        Row("2", 1865.9),
-        Row("5", 1918.66666666666667)
+      sql(
+        "select channelsId, avg(gamePointId+ 10) Total from Carbon_automation_test2_hive group by  " +
+          "channelsId order by Total"
       )
     )
 
@@ -264,17 +261,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select avg(gamepointid) +10 as a ,series  from Carbon_automation_test2 group by series")({
     checkAnswer(
       sql("select avg(gamepointid) +10 as a ,series  from Carbon_automation_test2 group by series"),
-      Seq(Row(1445.7777777777778, "6Series"),
-        Row(1735.3333333333333, "0Series"),
-        Row(1553.0, "4Series"),
-        Row(1243.3636363636363, "8Series"),
-        Row(1700.1088181818182, "7Series"),
-        Row(1343.6666666666667, "1Series"),
-        Row(1720.0588235294117, "5Series"),
-        Row(1625.0, "9Series"),
-        Row(1914.375, "3Series"),
-        Row(1382.6666666666667, "2Series")
-      )
+      sql("select avg(gamepointid) +10 as a ,series  from Carbon_automation_test2_hive group by series")
     )
   }
   )
@@ -325,7 +312,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select sum( DISTINCT gamePointId) a  from Carbon_automation_test2")({
     checkAnswer(
       sql("select sum( DISTINCT gamePointId) a  from Carbon_automation_test2"),
-      Seq(Row(153284.19700000001))
+      sql("select sum( DISTINCT gamePointId) a  from Carbon_automation_test2_hive")
     )
   }
   )
@@ -343,7 +330,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select avg(gamePointId) a  from Carbon_automation_test2")({
     checkAnswer(
       sql("select avg(gamePointId) a  from Carbon_automation_test2"),
-      Seq(Row(1584.6989595959594))
+      sql("select avg(gamePointId) a  from Carbon_automation_test2_hive")
     )
   }
   )
@@ -399,7 +386,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select stddev_pop(gamePointId) as a  from Carbon_automation_test2")({
     checkAnswer(
       sql("select stddev_pop(gamePointId) as a  from Carbon_automation_test2"),
-      Seq(Row(809.1896217395077))
+      sql("select stddev_pop(gamePointId) as a  from Carbon_automation_test2_hive")
     )
   }
   )
@@ -408,7 +395,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select covar_pop(gamePointId,gamePointId) as a  from Carbon_automation_test2")({
     checkAnswer(
       sql("select covar_pop(gamePointId,gamePointId) as a  from Carbon_automation_test2"),
-      Seq(Row(654787.8439309277))
+      sql("select covar_pop(gamePointId,gamePointId) as a  from Carbon_automation_test2_hive")
     )
   }
   )
@@ -417,7 +404,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select covar_samp(gamePointId,gamePointId) as a  from Carbon_automation_test2")({
     checkAnswer(
       sql("select covar_samp(gamePointId,gamePointId) as a  from Carbon_automation_test2"),
-      Seq(Row(661469.3525424678))
+      sql("select covar_samp(gamePointId,gamePointId) as a  from Carbon_automation_test2_hive")
     )
   }
   )
@@ -489,36 +476,10 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
           "Carbon_automation_test2 group by deliveryCountry,deliveryProvince,series order by " +
           "deliveryCountry,deliveryProvince,series"
       ),
-      Seq(Row("Chinese", "Guangdong Province", "0Series", 11182.0),
-        Row("Chinese", "Guangdong Province", "1Series", 1053.0),
-        Row("Chinese", "Guangdong Province", "2Series", 3468.0),
-        Row("Chinese", "Guangdong Province", "3Series", 11206.0),
-        Row("Chinese", "Guangdong Province", "4Series", 1337.0),
-        Row("Chinese", "Guangdong Province", "5Series", 10962.0),
-        Row("Chinese", "Guangdong Province", "6Series", 1229.0),
-        Row("Chinese", "Guangdong Province", "7Series", 3543.0),
-        Row("Chinese", "Guangdong Province", "8Series", 3859.0),
-        Row("Chinese", "Guangdong Province", "9Series", 1525.0),
-        Row("Chinese", "Hubei Province", "0Series", 5545.0),
-        Row("Chinese", "Hubei Province", "1Series", 2593.0),
-        Row("Chinese", "Hubei Province", "2Series", 4344.0),
-        Row("Chinese", "Hubei Province", "3Series", 2077.0),
-        Row("Chinese", "Hubei Province", "4Series", 3542.0),
-        Row("Chinese", "Hubei Province", "5Series", 692.0),
-        Row("Chinese", "Hubei Province", "6Series", 1657.0),
-        Row("Chinese", "Hubei Province", "7Series", 10629.197),
-        Row("Chinese", "Hubei Province", "8Series", 3279.0),
-        Row("Chinese", "Hubei Province", "9Series", 3088.0),
-        Row("Chinese", "Hunan Province", "0Series", 9153.0),
-        Row("Chinese", "Hunan Province", "1Series", 355.0),
-        Row("Chinese", "Hunan Province", "2Series", 4542.0),
-        Row("Chinese", "Hunan Province", "3Series", 1952.0),
-        Row("Chinese", "Hunan Province", "4Series", 7465.0),
-        Row("Chinese", "Hunan Province", "5Series", 17417.0),
-        Row("Chinese", "Hunan Province", "6Series", 10036.0),
-        Row("Chinese", "Hunan Province", "7Series", 4419.0),
-        Row("Chinese", "Hunan Province", "8Series", 6429.0),
-        Row("Chinese", "Hunan Province", "9Series", 8307.0)
+      sql(
+        "select deliveryCountry,deliveryProvince,series,sum(gamePointId) a from " +
+          "Carbon_automation_test2_hive group by deliveryCountry,deliveryProvince,series order by " +
+          "deliveryCountry,deliveryProvince,series"
       )
     )
   }
@@ -533,16 +494,9 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select series,avg(gamePointId) a from Carbon_automation_test2 group by series order by " +
           "series"
       ),
-      Seq(Row("0Series", 1725.3333333333333),
-        Row("1Series", 1333.6666666666667),
-        Row("2Series", 1372.6666666666667),
-        Row("3Series", 1904.375),
-        Row("4Series", 1543.0),
-        Row("5Series", 1710.0588235294117),
-        Row("6Series", 1435.7777777777778),
-        Row("7Series", 1690.1088181818182),
-        Row("8Series", 1233.3636363636363),
-        Row("9Series", 1615.0)
+      sql(
+        "select series,avg(gamePointId) a from Carbon_automation_test2_hive group by series order by " +
+          "series"
       )
     )
   }
@@ -560,36 +514,10 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
           "Carbon_automation_test2 group by deliveryCountry,deliveryProvince,series order by " +
           "deliveryCountry,deliveryProvince,series"
       ),
-      Seq(Row("Chinese", "Guangdong Province", "0Series", 1863.6666666666667),
-        Row("Chinese", "Guangdong Province", "1Series", 1053.0),
-        Row("Chinese", "Guangdong Province", "2Series", 1734.0),
-        Row("Chinese", "Guangdong Province", "3Series", 2241.2),
-        Row("Chinese", "Guangdong Province", "4Series", 1337.0),
-        Row("Chinese", "Guangdong Province", "5Series", 1566.0),
-        Row("Chinese", "Guangdong Province", "6Series", 1229.0),
-        Row("Chinese", "Guangdong Province", "7Series", 1771.5),
-        Row("Chinese", "Guangdong Province", "8Series", 1286.3333333333333),
-        Row("Chinese", "Guangdong Province", "9Series", 762.5),
-        Row("Chinese", "Hubei Province", "0Series", 1848.3333333333333),
-        Row("Chinese", "Hubei Province", "1Series", 2593.0),
-        Row("Chinese", "Hubei Province", "2Series", 1086.0),
-        Row("Chinese", "Hubei Province", "3Series", 2077.0),
-        Row("Chinese", "Hubei Province", "4Series", 1771.0),
-        Row("Chinese", "Hubei Province", "5Series", 692.0),
-        Row("Chinese", "Hubei Province", "6Series", 828.5),
-        Row("Chinese", "Hubei Province", "7Series", 1771.5328333333334),
-        Row("Chinese", "Hubei Province", "8Series", 1093.0),
-        Row("Chinese", "Hubei Province", "9Series", 1544.0),
-        Row("Chinese", "Hunan Province", "0Series", 1525.5),
-        Row("Chinese", "Hunan Province", "1Series", 355.0),
-        Row("Chinese", "Hunan Province", "2Series", 1514.0),
-        Row("Chinese", "Hunan Province", "3Series", 976.0),
-        Row("Chinese", "Hunan Province", "4Series", 1493.0),
-        Row("Chinese", "Hunan Province", "5Series", 1935.2222222222222),
-        Row("Chinese", "Hunan Province", "6Series", 1672.6666666666667),
-        Row("Chinese", "Hunan Province", "7Series", 1473.0),
-        Row("Chinese", "Hunan Province", "8Series", 1285.8),
-        Row("Chinese", "Hunan Province", "9Series", 2076.75)
+      sql(
+        "select deliveryCountry,deliveryProvince,series,avg(gamePointId) a from " +
+          "Carbon_automation_test2_hive group by deliveryCountry,deliveryProvince,series order by " +
+          "deliveryCountry,deliveryProvince,series"
       )
     )
   }
@@ -810,16 +738,9 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select series,max(gamePointId) a from Carbon_automation_test2 group by series order by " +
           "series"
       ),
-      Seq(Row("0Series", 2972.0),
-        Row("1Series", 2593.0),
-        Row("2Series", 2553.0),
-        Row("3Series", 2745.0),
-        Row("4Series", 2970.0),
-        Row("5Series", 2849.0),
-        Row("6Series", 2572.0),
-        Row("7Series", 2738.562),
-        Row("8Series", 2078.0),
-        Row("9Series", 2952.0)
+      sql(
+        "select series,max(gamePointId) a from Carbon_automation_test2_hive group by series order by " +
+          "series"
       )
     )
   }
@@ -837,36 +758,10 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
           "Carbon_automation_test2 group by deliveryCountry,deliveryProvince,series order by " +
           "deliveryCountry,deliveryProvince,series"
       ),
-      Seq(Row("Chinese", "Guangdong Province", "0Series", 2890.0),
-        Row("Chinese", "Guangdong Province", "1Series", 1053.0),
-        Row("Chinese", "Guangdong Province", "2Series", 2061.0),
-        Row("Chinese", "Guangdong Province", "3Series", 2745.0),
-        Row("Chinese", "Guangdong Province", "4Series", 1337.0),
-        Row("Chinese", "Guangdong Province", "5Series", 2734.0),
-        Row("Chinese", "Guangdong Province", "6Series", 1229.0),
-        Row("Chinese", "Guangdong Province", "7Series", 2175.0),
-        Row("Chinese", "Guangdong Province", "8Series", 1750.0),
-        Row("Chinese", "Guangdong Province", "9Series", 954.0),
-        Row("Chinese", "Hubei Province", "0Series", 2972.0),
-        Row("Chinese", "Hubei Province", "1Series", 2593.0),
-        Row("Chinese", "Hubei Province", "2Series", 1655.0),
-        Row("Chinese", "Hubei Province", "3Series", 2077.0),
-        Row("Chinese", "Hubei Province", "4Series", 2970.0),
-        Row("Chinese", "Hubei Province", "5Series", 692.0),
-        Row("Chinese", "Hubei Province", "6Series", 907.0),
-        Row("Chinese", "Hubei Province", "7Series", 2738.562),
-        Row("Chinese", "Hubei Province", "8Series", 2078.0),
-        Row("Chinese", "Hubei Province", "9Series", 2952.0),
-        Row("Chinese", "Hunan Province", "0Series", 2436.0),
-        Row("Chinese", "Hunan Province", "1Series", 355.0),
-        Row("Chinese", "Hunan Province", "2Series", 2553.0),
-        Row("Chinese", "Hunan Province", "3Series", 1873.0),
-        Row("Chinese", "Hunan Province", "4Series", 2863.0),
-        Row("Chinese", "Hunan Province", "5Series", 2849.0),
-        Row("Chinese", "Hunan Province", "6Series", 2572.0),
-        Row("Chinese", "Hunan Province", "7Series", 2071.0),
-        Row("Chinese", "Hunan Province", "8Series", 1608.0),
-        Row("Chinese", "Hunan Province", "9Series", 2288.0)
+      sql(
+        "select deliveryCountry,deliveryProvince,series,max(gamePointId) a from " +
+          "Carbon_automation_test2_hive group by deliveryCountry,deliveryProvince,series order by " +
+          "deliveryCountry,deliveryProvince,series"
       )
     )
   }
@@ -1011,17 +906,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select imei,series,gamePointId from Carbon_automation_test2 limit 10")({
     checkAnswer(
       sql("select imei,series,gamePointId from Carbon_automation_test2 limit 10"),
-      Seq(Row("1AA1", "7Series", 2738.562),
-        Row("1AA10", "7Series", 1714.635),
-        Row("1AA100", "5Series", 1271.0),
-        Row("1AA1000", "5Series", 692.0),
-        Row("1AA10000", "7Series", 2175.0),
-        Row("1AA100000", "9Series", 136.0),
-        Row("1AA1000000", "7Series", 1600.0),
-        Row("1AA100001", "0Series", 505.0),
-        Row("1AA100002", "0Series", 1341.0),
-        Row("1AA100003", "5Series", 2239.0)
-      )
+      sql("select imei,series,gamePointId from Carbon_automation_test2_hive limit 10")
     )
   }
   )
@@ -1030,104 +915,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select distinct gamePointId from Carbon_automation_test2")({
     checkAnswer(
       sql("select distinct gamePointId from Carbon_automation_test2"),
-      Seq(Row(1350.0),
-        Row(412.0),
-        Row(2952.0),
-        Row(2077.0),
-        Row(1750.0),
-        Row(1600.0),
-        Row(2436.0),
-        Row(2061.0),
-        Row(1442.0),
-        Row(1717.0),
-        Row(1567.0),
-        Row(1434.0),
-        Row(2745.0),
-        Row(954.0),
-        Row(2970.0),
-        Row(1226.0),
-        Row(750.0),
-        Row(256.0),
-        Row(2488.0),
-        Row(1768.0),
-        Row(1368.0),
-        Row(571.0),
-        Row(2863.0),
-        Row(79.0),
-        Row(2288.0),
-        Row(2972.0),
-        Row(2572.0),
-        Row(692.0),
-        Row(1077.0),
-        Row(613.0),
-        Row(813.0),
-        Row(538.0),
-        Row(2890.0),
-        Row(202.0),
-        Row(448.0),
-        Row(298.0),
-        Row(2399.0),
-        Row(2849.0),
-        Row(2224.0),
-        Row(151.0),
-        Row(1778.0),
-        Row(2483.0),
-        Row(901.0),
-        Row(1053.0),
-        Row(1728.0),
-        Row(2192.0),
-        Row(2142.0),
-        Row(572.0),
-        Row(29.0),
-        Row(1337.0),
-        Row(568.0),
-        Row(2826.0),
-        Row(2738.562),
-        Row(2635.0),
-        Row(1229.0),
-        Row(1271.0),
-        Row(2194.0),
-        Row(760.0),
-        Row(2553.0),
-        Row(2078.0),
-        Row(2478.0),
-        Row(1655.0),
-        Row(1080.0),
-        Row(505.0),
-        Row(355.0),
-        Row(1697.0),
-        Row(2071.0),
-        Row(2205.0),
-        Row(1864.0),
-        Row(1015.0),
-        Row(2239.0),
-        Row(865.0),
-        Row(1873.0),
-        Row(1098.0),
-        Row(2348.0),
-        Row(1823.0),
-        Row(1973.0),
-        Row(2507.0),
-        Row(732.0),
-        Row(907.0),
-        Row(1714.635),
-        Row(1407.0),
-        Row(1724.0),
-        Row(1999.0),
-        Row(2175.0),
-        Row(1991.0),
-        Row(1691.0),
-        Row(441.0),
-        Row(136.0),
-        Row(1341.0),
-        Row(845.0),
-        Row(2734.0),
-        Row(1841.0),
-        Row(1491.0),
-        Row(1333.0),
-        Row(2593.0),
-        Row(1608.0)
-      )
+      sql("select distinct gamePointId from Carbon_automation_test2_hive")
     )
   }
   )
@@ -1155,17 +943,7 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
   test("select series,gamePointId as a from Carbon_automation_test2  order by a desc limit 10")({
     checkAnswer(
       sql("select series,gamePointId as a from Carbon_automation_test2  order by a desc limit 10"),
-      Seq(Row("0Series", 2972.0),
-        Row("4Series", 2970.0),
-        Row("9Series", 2952.0),
-        Row("0Series", 2890.0),
-        Row("4Series", 2863.0),
-        Row("5Series", 2849.0),
-        Row("0Series", 2826.0),
-        Row("3Series", 2745.0),
-        Row("7Series", 2738.562),
-        Row("5Series", 2734.0)
-      )
+      sql("select series,gamePointId as a from Carbon_automation_test2_hive  order by a desc limit 10")
     )
   }
   )
@@ -1180,7 +958,10 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select imei from Carbon_automation_test2 where  (contractNumber == 5281803) and " +
           "(gamePointId==2738.562)"
       ),
-      Seq(Row("1AA1"))
+      sql(
+        "select imei from Carbon_automation_test2_hive where  (contractNumber == 5281803) and " +
+          "(gamePointId==2738.562)"
+      )
     )
   }
   )
@@ -1209,17 +990,9 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select contractNumber,gamePointId,series from Carbon_automation_test2 where " +
           "series='8Series'"
       ),
-      Seq(Row(1070757.0, 1442.0, "8Series"),
-        Row(574375.0, 441.0, "8Series"),
-        Row(8229807.0, 760.0, "8Series"),
-        Row(1901889.0, 1750.0, "8Series"),
-        Row(7880439.0, 2078.0, "8Series"),
-        Row(5659107.0, 1697.0, "8Series"),
-        Row(6190068.0, 1608.0, "8Series"),
-        Row(7420815.0, 538.0, "8Series"),
-        Row(3235086.0, 412.0, "8Series"),
-        Row(7917206.0, 1491.0, "8Series"),
-        Row(4156339.0, 1350.0, "8Series")
+      sql(
+        "select contractNumber,gamePointId,series from Carbon_automation_test2 where " +
+          "series='8Series'"
       )
     )
   }
@@ -1285,28 +1058,9 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select contractNumber,gamePointId,series from Carbon_automation_test2 where " +
           "series='8Series' or series='7Series'"
       ),
-      Seq(Row(5281803.0, 2738.562, "7Series"),
-        Row(6805600.0, 1714.635, "7Series"),
-        Row(3784858.0, 2175.0, "7Series"),
-        Row(9737768.0, 1600.0, "7Series"),
-        Row(1070757.0, 1442.0, "8Series"),
-        Row(574375.0, 441.0, "8Series"),
-        Row(7487134.0, 1768.0, "7Series"),
-        Row(5586718.0, 2071.0, "7Series"),
-        Row(5857263.0, 1333.0, "7Series"),
-        Row(6416074.0, 1080.0, "7Series"),
-        Row(8229807.0, 760.0, "8Series"),
-        Row(3311312.0, 1015.0, "7Series"),
-        Row(1901889.0, 1750.0, "8Series"),
-        Row(7880439.0, 2078.0, "8Series"),
-        Row(5659107.0, 1697.0, "8Series"),
-        Row(6190068.0, 1608.0, "8Series"),
-        Row(6283156.0, 1368.0, "7Series"),
-        Row(7342321.0, 1728.0, "7Series"),
-        Row(7420815.0, 538.0, "8Series"),
-        Row(3235086.0, 412.0, "8Series"),
-        Row(7917206.0, 1491.0, "8Series"),
-        Row(4156339.0, 1350.0, "8Series")
+      sql(
+        "select contractNumber,gamePointId,series from Carbon_automation_test2_hive where " +
+          "series='8Series' or series='7Series'"
       )
     )
   }
@@ -2638,7 +2392,10 @@ class AllDataTypesTestCase2 extends QueryTest with BeforeAndAfterAll {
         "select imei from Carbon_automation_test2 where  (contractNumber == 5281803) and " +
           "(gamePointId==2738.562)"
       ),
-      Seq(Row("1AA1"))
+      sql(
+        "select imei from Carbon_automation_test2_hive where  (contractNumber == 5281803) and " +
+          "(gamePointId==2738.562)"
+      )
     )
   }
   )
