@@ -203,6 +203,7 @@ public class CarbonDictionaryWriterImpl implements CarbonDictionaryWriter {
       writeDictionaryFile();
       // close the thrift writer for dictionary file
       closeThriftWriter();
+      LOGGER.info("Dictionary file written successfully:" + this.columnIdentifier);
     }
   }
 
@@ -304,8 +305,10 @@ public class CarbonDictionaryWriterImpl implements CarbonDictionaryWriter {
       boolean truncateSuccess = carbonFile
           .truncate(this.dictionaryFilePath, chunkMetaObjectForLastSegmentEntry.getEnd_offset());
       if (!truncateSuccess) {
-        LOGGER.info("Diction file not truncated successfully for column " + this.columnIdentifier);
+        throw new IOException("Dictionary file not"
+               + " truncated successfully:" + this.columnIdentifier);
       }
+      LOGGER.info("Truncation successfull for dictionary:" + this.columnIdentifier);
     }
   }
 

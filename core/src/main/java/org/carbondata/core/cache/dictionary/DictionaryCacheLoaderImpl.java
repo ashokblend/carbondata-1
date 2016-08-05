@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.carbondata.common.factory.CarbonCommonFactory;
+import org.carbondata.common.logging.LogService;
+import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.core.carbon.CarbonTableIdentifier;
 import org.carbondata.core.carbon.ColumnIdentifier;
 import org.carbondata.core.reader.CarbonDictionaryReader;
@@ -33,6 +35,12 @@ import org.carbondata.core.service.DictionaryService;
  * This class is responsible for loading the dictionary data for given columns
  */
 public class DictionaryCacheLoaderImpl implements DictionaryCacheLoader {
+
+  /**
+   * LOGGER
+   */
+  private static final LogService LOGGER =
+      LogServiceFactory.getLogService(DictionaryCacheLoaderImpl.class.getName());
 
   /**
    * carbon table identifier
@@ -76,7 +84,11 @@ public class DictionaryCacheLoaderImpl implements DictionaryCacheLoader {
     if (loadSortIndex) {
       readSortIndexFile(dictionaryInfo, columnIdentifier);
     }
-    dictionaryInfo.addDictionaryChunk(dictionaryChunk);
+    if (null != dictionaryChunk && dictionaryChunk.size() > 0) {
+      dictionaryInfo.addDictionaryChunk(dictionaryChunk);
+    } else {
+      LOGGER.warn("Found empty dictionary chunk:" + columnIdentifier);
+    }
   }
 
   /**

@@ -210,6 +210,7 @@ public class CarbonDictionarySortIndexWriterImpl implements CarbonDictionarySort
     writeColumnSortInfo();
     if (null != sortIndexThriftWriter) {
       sortIndexThriftWriter.close();
+      LOGGER.info("Sort index file is written successfully:" + columnIdentifier);
     }
   }
 }
