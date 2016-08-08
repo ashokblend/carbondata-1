@@ -19,6 +19,7 @@
 
 package org.carbondata.core.datastorage.store.compression.type;
 
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
 import org.carbondata.common.logging.LogService;
@@ -95,7 +96,9 @@ public class UnCompressNonDecimalMaxMinDefault implements UnCompressValue<double
       if (value[i] == 0) {
         vals[i] = maxVal;
       } else {
-        vals[i] = (maxVal - value[i]) / Math.pow(10, decimal);
+        BigDecimal diff = new BigDecimal(Double.toString(value[i] / Math.pow(10, decimal)));
+        BigDecimal max = new BigDecimal(Double.toString(maxVal));
+        vals[i] = max.subtract(diff).doubleValue();
       }
 
     }
