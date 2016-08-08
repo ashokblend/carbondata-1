@@ -325,13 +325,15 @@ class CarbonGlobalDictionaryGenerateRDD(
         val rddIter = firstParent[(Int, ColumnDistinctValues)].iterator(split, context)
         var rowCount = 0L
         CarbonTimeStatisticsFactory.getLoadStatisticsInstance().recordDicShuffleAndWriteTime()
+        val isApplicableForHighCardinalityCheck = GlobalDictionaryUtil
+          .isApplicableForHighCardinalityCheck(model, split.index)
         breakable {
           while (rddIter.hasNext) {
             val distinctValueList = rddIter.next()._2
             valuesBuffer ++= distinctValueList.values
             rowCount += distinctValueList.rowCount
             // check high cardinality
-            if (GlobalDictionaryUtil.isApplicableForHighCardinalityCheck(model, split.index)) {
+            if (isApplicableForHighCardinalityCheck) {
               isHighCardinalityColumn = GlobalDictionaryUtil.isHighCardinalityColumn(
                 valuesBuffer.size, rowCount, model)
               if (isHighCardinalityColumn) {

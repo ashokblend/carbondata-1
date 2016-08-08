@@ -274,8 +274,8 @@ object GlobalDictionaryUtil extends Logging {
    */
   def isApplicableForHighCardinalityCheck(model: DictionaryLoadModel, index: Int): Boolean = {
     model.isFirstLoad && model.highCardIdentifyEnable && !model.isComplexes(index) &&
-    model.dimensions(index).isColumnar() && !model.tableProperties
-      .isDictionaryIncludeColumn(model.dimensions(index).getColName)
+    model.primDimensions(index).isColumnar() && !model.tableProperties
+      .isDictionaryIncludeColumn(model.primDimensions(index).getColName)
   }
 
   /**
